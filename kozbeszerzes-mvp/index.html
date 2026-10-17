@@ -321,6 +321,43 @@ details.more[open]>summary{margin-bottom:8px}
 @media (max-width:820px){.erow.staff,.erow.ref{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.erow .w2{grid-column:1/-1}}
 .confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--bad-soft);color:var(--bad);font-weight:600}
 
+/* finder & win outlook */
+.finder-hero{display:grid;gap:12px;padding:20px;background:var(--card);border:1px solid var(--rule);border-radius:14px}
+.finder-form{display:flex;flex-wrap:wrap;gap:8px}
+.finder-form input{flex:1 1 280px;width:auto;min-width:0;font-size:16px;min-height:46px}
+.finder-form .btn{min-height:46px;padding-inline:22px}
+.examples{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-3)}
+.ex{appearance:none;border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;color:var(--ink-2)}
+.ex:hover{border-color:var(--accent);color:var(--accent)}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.steps li{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;display:grid;gap:4px;align-content:start}
+.steps b{font-family:var(--f-display);font-size:15px}
+@media (max-width:720px){.steps{grid-template-columns:minmax(0,1fr)}}
+.form-err{color:var(--bad);font-weight:600}
+.temp-bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:12px;background:var(--accent-soft)}
+.derived{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--rule)}
+.derived .chips{display:flex;flex-wrap:wrap;gap:6px}
+.derived .chip,.reasons .chip{white-space:normal;text-align:left}
+.wrow{appearance:none;width:100%;text-align:left;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 14px;align-items:start;padding:12px 0;border:0;border-top:1px solid var(--rule);background:none;cursor:pointer;color:inherit}
+.wrow:first-of-type{border-top:0}
+.wrow:hover .ttitle{color:var(--accent)}
+.wrow .fit{width:40px;height:40px;font-size:14px}
+.reasons{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip.win-high{background:var(--ok-soft);color:var(--ok)}
+.chip.win-mid{background:var(--warn-soft);color:var(--warn)}
+.chip.win-low{background:var(--sunk);color:var(--ink-2)}
+.rank{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.rank li{display:grid;grid-template-columns:28px minmax(0,1fr) 44px;gap:10px;align-items:center;padding:7px 10px;border-radius:8px}
+.rank li.me{background:var(--accent-soft)}
+.rank .rk{font-weight:700;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.rank .rs{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.rank .rn{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;min-width:0}
+.bullets{margin:0;padding-left:18px;display:grid;gap:3px;font-size:13px}
+@media (max-width:640px){.wrow{grid-template-columns:40px minmax(0,1fr)}.wrow .tside{grid-column:2;justify-items:start;text-align:left;display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;min-width:0}}
+
+/* single-column grids: keep the column at the container width so long <select> options cannot widen it */
+.card,.pform,.stack,.finder-hero,.dsec,.derived,.doc,.ai-out,.mail-body,.fbody{grid-template-columns:minmax(0,1fr)}
+
 /* overlays */
 .tip{position:fixed;z-index:60;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--rule);box-shadow:var(--shadow);border-radius:8px;padding:8px 10px;display:grid;gap:2px;font-size:12.5px;max-width:260px}
 .tip strong{font-size:15px}
@@ -341,6 +378,7 @@ details.more[open]>summary{margin-bottom:8px}
     </div>
     <div class="wrap">
       <nav class="tabs" role="tablist" aria-label="Nézetek">
+        <button class="tab" role="tab" type="button" id="tab-finder" data-tab="finder">Cégkereső</button>
         <button class="tab" role="tab" type="button" id="tab-tenders" data-tab="tenders">Tenderek</button>
         <button class="tab" role="tab" type="button" id="tab-market" data-tab="market">Versenytársak</button>
         <button class="tab" role="tab" type="button" id="tab-report" data-tab="report">Napi riport</button>
@@ -381,6 +419,7 @@ const dueText = n => (n <= 0 ? 'ma' : n === 1 ? 'holnap' : n + ' nap múlva');
 const pubLabel = n => (n <= 0 ? 'ma' : n === 1 ? 'tegnap' : n + ' napja');
 const aAz = w => (/^[\s„"'(]*[aáeéiíoóöőuúüű]/i.test(String(w)) ? 'az' : 'a');
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const fold = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\b(kft|zrt|nyrt|bt|kkt|nonprofit)\b\.?/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
@@ -403,10 +442,41 @@ const CPV = {
   '33141000-0': 'Egyszer használatos orvosi fogyóeszközök',
 };
 const cpvName = c => CPV[c] || 'egyéb CPV';
+const SECTORS = {
+  road: { teaor: '4211', name: 'Út, autópálya építése', cpv: ['45233140-2', '45233120-6', '45233162-2', '45233161-5', '45223300-9', '45112000-5'] },
+  bridge: { teaor: '4213', name: 'Híd, alagút építése', cpv: ['45221111-3', '45233120-6'] },
+  utility: { teaor: '4221', name: 'Folyadék szállítására szolgáló közmű építése', cpv: ['45232452-5', '45112000-5', '45233140-2'] },
+  software: { teaor: '6210', name: 'Számítógépes programozás', cpv: ['72212000-4', '72267000-4', '48000000-8', '72000000-5'] },
+  itops: { teaor: '6220', name: 'Információtechnológiai szaktanácsadás, üzemeltetés', cpv: ['72253000-3', '72267000-4', '72000000-5'] },
+  data: { teaor: '6310', name: 'Számítástechnikai infrastruktúra, adatfeldolgozás', cpv: ['72310000-1', '72000000-5', '30213000-5'] },
+  catering: { teaor: '5622', name: 'Szerződéses étkeztetés, közétkeztetés', cpv: ['55524000-9', '55523100-3', '55520000-1', '55321000-6', '55320000-9', '55512000-2'] },
+  cleaning: { teaor: '8121', name: 'Általános épülettakarítás', cpv: ['90910000-9'] },
+  medical: { teaor: '4646', name: 'Gyógyászati termék nagykereskedelme', cpv: ['33141000-0'] },
+};
+// Fictional company register standing in for e-cégjegyzék / e-beszámoló / Opten. Tax numbers use the 9999 prefix and pass the checksum.
+const REGISTRY = [
+  ['Rábaköz Útépítő Kft.', '99990017-2-08', '08-09-999017', 'Győr', 'HU221', 'road', 2006, 2400, 48],
+  ['Kisalföldi Aszfalt Zrt.', '99990024-2-08', '08-10-999024', 'Győr', 'HU221', 'road', 1998, 6800, 140],
+  ['Pannon Útház Kft.', '99990031-2-18', '18-09-999031', 'Szombathely', 'HU222', 'road', 2011, 1900, 36],
+  ['Hídfő-Bau Kft.', '99990048-2-08', '08-09-999048', 'Mosonmagyaróvár', 'HU221', 'bridge', 2009, 1300, 31],
+  ['Szigetköz Mélyépítő Kft.', '99990055-2-11', '11-09-999055', 'Komárom', 'HU212', 'utility', 2014, 820, 22],
+  ['Pixelhíd Informatikai Zrt.', '99990062-2-41', '01-10-999062', 'Budapest', 'HU110', 'software', 2012, 1100, 35],
+  ['Adatkapu Systems Kft.', '99990079-2-42', '01-09-999079', 'Budapest', 'HU110', 'software', 2008, 2600, 64],
+  ['Bitvár Szoftver Zrt.', '99990086-2-05', '05-10-999086', 'Miskolc', 'HU311', 'itops', 2005, 1700, 48],
+  ['Kódkert Informatika Kft.', '99990093-2-20', '20-09-999093', 'Zalaegerszeg', 'HU223', 'itops', 2016, 420, 15],
+  ['Felhőpont Kft.', '99990103-2-43', '01-09-999103', 'Budapest', 'HU110', 'data', 2018, 950, 22],
+  ['Napfény Menza Kft.', '99990110-2-09', '09-09-999110', 'Debrecen', 'HU321', 'catering', 2010, 680, 120],
+  ['Alföldi Konyha Zrt.', '99990127-2-09', '09-10-999127', 'Debrecen', 'HU321', 'catering', 1996, 3900, 310],
+  ['Hajdú Gasztro Kft.', '99990134-2-09', '09-09-999134', 'Hajdúszoboszló', 'HU321', 'catering', 2013, 900, 95],
+  ['Tál-Ent Közétkeztetés Kft.', '99990141-2-15', '15-09-999141', 'Nyíregyháza', 'HU323', 'catering', 2002, 1500, 150],
+  ['Ízvilág Catering Kft.', '99990158-2-16', '16-09-999158', 'Szolnok', 'HU322', 'catering', 2017, 260, 38],
+  ['Fényes Csarnok Takarító Kft.', '99990165-2-44', '01-09-999165', 'Budapest', 'HU110', 'cleaning', 2015, 540, 160],
+  ['Fehérköpeny Egészségügyi Nagykereskedés Kft.', '99990172-2-05', '05-09-999172', 'Miskolc', 'HU311', 'medical', 2003, 3100, 40],
+].map(([name, tax, cegj, city, nuts, sector, founded, revenue, employees]) => ({ name, tax, cegj, city, nuts, sector, founded, revenue, employees }));
 
 const DEFAULT_PROFILES = [
   {
-    id: 'raba', name: 'Rábaköz Útépítő Kft.', sector: 'Útépítés és mélyépítés', hq: 'Győr',
+    id: 'raba', name: 'Rábaköz Útépítő Kft.', tax: '99990017-2-08', sector: 'Útépítés és mélyépítés', hq: 'Győr',
     about: 'Közepes méretű útépítő és mélyépítő vállalkozás a Nyugat-Dunántúlon. Saját aszfaltkeverő teleppel és két finisher-lánccal dolgozik, főként önkormányzati és állami megrendelőknek.',
     revenue: 2400, employees: 48,
     cpv: ['45233140-2', '45233120-6', '45112000-5', '45232452-5'], regions: ['HU221', 'HU222', 'HU212'],
@@ -421,7 +491,7 @@ const DEFAULT_PROFILES = [
     defaultWatch: ['Kisalföldi Aszfalt Zrt.', 'Pannon Útház Kft.', 'Hídfő-Bau Kft.'],
   },
   {
-    id: 'pixel', name: 'Pixelhíd Informatikai Zrt.', sector: 'Szoftverfejlesztés és IT-támogatás', hq: 'Budapest',
+    id: 'pixel', name: 'Pixelhíd Informatikai Zrt.', tax: '99990062-2-41', sector: 'Szoftverfejlesztés és IT-támogatás', hq: 'Budapest',
     about: 'Közszféra-fókuszú szoftverfejlesztő cég: ügyfélportálok, integrációk és üzemeltetés. A 35 fős csapatból 22 fejlesztő.',
     revenue: 1100, employees: 35,
     cpv: ['72212000-4', '72000000-5', '72253000-3', '72267000-4'], regions: ['HU110', 'HU120', 'ORSZ'],
@@ -436,7 +506,7 @@ const DEFAULT_PROFILES = [
     defaultWatch: ['Adatkapu Systems Kft.', 'Bitvár Szoftver Zrt.', 'Kódkert Informatika Kft.'],
   },
   {
-    id: 'napfeny', name: 'Napfény Menza Kft.', sector: 'Közétkeztetés', hq: 'Debrecen',
+    id: 'napfeny', name: 'Napfény Menza Kft.', tax: '99990110-2-09', sector: 'Közétkeztetés', hq: 'Debrecen',
     about: 'Regionális közétkeztető: saját főzőkonyha Debrecenben, napi 6 000 adag kapacitással. Óvodákat, iskolákat és szociális intézményeket lát el.',
     revenue: 680, employees: 120,
     cpv: ['55524000-9', '55523100-3', '55321000-6', '55520000-1'], regions: ['HU321', 'HU323', 'HU322'],
@@ -629,12 +699,12 @@ const AWARDS = [
 
 /* ---------- state ---------- */
 const KEY = { profiles: 'tp1.profiles', watch: 'tp1.watch', report: 'tp1.report', drafts: 'tp1.drafts', ui: 'tp1.ui' };
-const TABS = ['tenders', 'market', 'report', 'profile', 'clients'];
+const TABS = ['finder', 'tenders', 'market', 'report', 'profile', 'clients'];
 
 function normProfile(p) {
   const arr = v => (Array.isArray(v) ? v : []);
   return {
-    id: String(p.id), name: String(p.name || 'Névtelen cég'), sector: String(p.sector || ''), hq: String(p.hq || ''),
+    id: String(p.id), name: String(p.name || 'Névtelen cég'), tax: String(p.tax || ''), sector: String(p.sector || ''), hq: String(p.hq || ''),
     about: String(p.about || ''), strengths: String(p.strengths || ''),
     revenue: Math.max(0, Number(p.revenue) || 0), employees: Math.max(0, Number(p.employees) || 0),
     cpv: arr(p.cpv).map(String), regions: arr(p.regions).map(String), certs: arr(p.certs).map(String),
@@ -654,16 +724,19 @@ let profiles = (() => {
 const uiSaved = store.get(KEY.ui, {}) || {};
 const state = {
   pid: profiles.some(p => p.id === uiSaved.pid) ? uiSaved.pid : profiles[0].id,
-  tab: TABS.includes(uiSaved.tab) ? uiSaved.tab : 'tenders',
+  tab: TABS.includes(uiSaved.tab) ? uiSaved.tab : 'finder',
   f: { q: '', onlyFit: true, div: '', region: '', regime: '', due: '', min: '', max: '', sort: 'fit' },
   open: null, opener: null, confirm: null,
+  finder: freshFinder(),
 };
 let watch = store.get(KEY.watch, {}); if (!watch || typeof watch !== 'object' || Array.isArray(watch)) watch = {};
 const report = Object.assign({ threshold: 60, freq: 'daily', sNew: true, sDue: true, sComp: true }, store.get(KEY.report, {}) || {});
 let drafts = store.get(KEY.drafts, {}); if (!drafts || typeof drafts !== 'object' || Array.isArray(drafts)) drafts = {};
-const prof = () => profiles.find(p => p.id === state.pid) || profiles[0];
+const TEMP = '__temp';
+let temp = null; // profile built by the company finder, kept until saved or discarded
+const prof = () => (state.pid === TEMP && temp) || profiles.find(p => p.id === state.pid) || profiles[0];
 const curTender = () => TENDERS.find(t => t.id === state.open);
-const saveUi = () => store.set(KEY.ui, { pid: state.pid, tab: state.tab });
+const saveUi = () => store.set(KEY.ui, { pid: state.pid === TEMP ? profiles[0].id : state.pid, tab: state.tab });
 let saveTimer;
 const saveProfiles = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => store.set(KEY.profiles, profiles), 250); };
 const getWatch = p => (Array.isArray(watch[p.id]) ? watch[p.id] : p.defaultWatch || []);
@@ -721,12 +794,14 @@ function checkReq(p, q) {
     return { st: 'fail', why: 'Nincs a feltételnek megfelelő referencia a profilban' };
   }
   if (q.type === 'staff') {
+    if (!p.staff.length) return { st: 'check', why: 'A profilban nincs szakemberadat' };
     const s = p.staff.find(x => x.role.toLowerCase().includes(q.role.toLowerCase()));
     if (!s) return { st: 'fail', why: `Nincs „${q.role}” szakember a profilban` };
     if (s.count >= (q.count || 1) && s.years >= (q.years || 0)) return { st: 'ok', why: `${s.count} fő ${s.role}, ${s.years} év tapasztalat` };
     return { st: 'part', why: `${s.role}: ${s.count} fő, ${s.years} év (elvárás: ${q.count || 1} fő${q.years ? ', ' + q.years + ' év' : ''})` };
   }
   if (q.type === 'cert') {
+    if (!p.certs.length) return { st: 'check', why: 'A profilban nincs tanúsítványadat' };
     return p.certs.some(c => normCert(c).includes(normCert(q.cert))) ? { st: 'ok', why: `Megvan: ${q.cert}` } : { st: 'fail', why: `Hiányzik: ${q.cert}` };
   }
   if (q.type === 'revenue') {
@@ -776,6 +851,85 @@ function insightFor(s) {
   if (s.ratio >= 0.97) return 'Szinte a becsült értéken nyer, vagyis árban van mozgástér egy olcsóbb ajánlatnak.';
   if (s.avgBids >= 3) return 'Erős versenyben is nyer, jellemzően a becsült érték alatt. Árban nehéz lesz megelőzni.';
   return 'Változó versenyhelyzetben nyer. Érdemes ajánlatkérőnként figyelni.';
+}
+
+/* ---------- public profiles, rivals, win outlook ---------- */
+const LEVEL = { high: 'Magas esély', mid: 'Közepes esély', low: 'Alacsony esély' };
+const LVL = { high: 3, mid: 2, low: 1 };
+const PUBLIC = new Map();
+function publicProfile(c) {
+  if (PUBLIC.has(c.tax)) return PUBLIC.get(c.tax);
+  const sec = SECTORS[c.sector];
+  const wins = AWARDS.filter(a => a.winner === c.name);
+  const pp = normProfile({
+    id: 'reg:' + c.tax, name: c.name, tax: c.tax, sector: sec.name, hq: c.city,
+    about: `${sec.name}. Székhely: ${c.city}. Alapítás éve: ${c.founded}. Létszám: ${c.employees} fő.`,
+    revenue: c.revenue, employees: c.employees,
+    cpv: [...new Set([...sec.cpv, ...wins.map(a => a.cpv)])],
+    regions: [...new Set([c.nuts, ...wins.map(a => a.nuts)])],
+    certs: [], staff: [],
+    references: wins.map(a => ({ title: a.title, buyer: a.buyer, value: a.value, year: a.date.getFullYear(), cpv: a.cpv })),
+  });
+  PUBLIC.set(c.tax, pp);
+  return pp;
+}
+const RIVAL_EV = new Map();
+function rivalEval(c, t) {
+  const k = c.tax + '|' + t.id;
+  if (!RIVAL_EV.has(k)) RIVAL_EV.set(k, evaluate(publicProfile(c), t));
+  return RIVAL_EV.get(k);
+}
+const winsAt = (name, buyer) => AWARDS.filter(a => a.winner === name && a.buyer === buyer).length;
+function incumbentOf(t) {
+  const cls = digits(t.cpv).slice(0, 4);
+  const h = AWARDS.filter(a => a.buyer === t.buyer && digits(a.cpv).slice(0, 4) === cls).sort((a, b) => a.daysAgo - b.daysAgo);
+  return h.length ? h[0].winner : null;
+}
+function winOutlook(p, t) {
+  const ev = evaluate(p, t), inc = incumbentOf(t);
+  const entry = (name, total, me) => {
+    const here = winsAt(name, t.buyer);
+    const raw = total * 0.9 + (here ? 6 : 0) + (inc === name ? 4 : 0);
+    return { name, total, me, here, raw, win: Math.round(raw) };
+  };
+  const field = [entry(p.name, ev.total, true)];
+  REGISTRY.forEach(c => {
+    if (fold(c.name) === fold(p.name)) return;
+    const e = rivalEval(c, t);
+    if (e.total >= 50) field.push(entry(c.name, e.total, false));
+  });
+  field.sort((a, b) => b.raw - a.raw || a.name.localeCompare(b.name, 'hu'));
+  const rank = field.findIndex(x => x.me) + 1;
+  const hist = AWARDS.filter(a => a.buyer === t.buyer);
+  const avgBids = hist.length ? hist.reduce((s, a) => s + a.bids, 0) / hist.length : null;
+  let level = ev.total >= 60 && rank === 1 ? 'high' : ev.total >= 50 && rank <= 2 ? 'mid' : 'low';
+  const missing = ev.reqs.some(q => q.st === 'fail');
+  if (missing && level === 'high') level = 'mid';
+  const reasons = [field.length === 1 ? 'Nincs más várható ajánlattevő a példa-cégadatbázisban' : `${rank}. hely ${field.length} várható ajánlattevő közül`];
+  const meHere = winsAt(p.name, t.buyer);
+  if (meHere) reasons.push(`Már nyert ennél az ajánlatkérőnél (${meHere}×)`);
+  if (inc && fold(inc) !== fold(p.name)) reasons.push(`Az előző hasonló szerződést ${inc} nyerte`);
+  if (avgBids !== null && avgBids <= 2) reasons.push(`Kevés ajánlattevő ennél az ajánlatkérőnél (átl. ${nf1.format(avgBids)})`);
+  if (missing) reasons.push('Önállóan hiányzik egy alkalmassági feltétel');
+  return { ev, field, rank, level, reasons, inc, avgBids };
+}
+function partnersFor(p, t, ev) {
+  return ev.reqs.filter(q => q.st === 'fail').map(q => ({
+    q,
+    cands: REGISTRY.filter(c => fold(c.name) !== fold(p.name)).map(c => ({ c, r: checkReq(publicProfile(c), q) })).filter(o => o.r.st === 'ok').slice(0, 2),
+  })).filter(x => x.cands.length);
+}
+function topRivals(p) {
+  const mk = marketAwards(p);
+  return [...new Set(mk.map(a => a.winner))].filter(n => fold(n) !== fold(p.name)).map(n => companyStats(n, mk)).sort((a, b) => b.total - a.total).slice(0, 3).map(s => s.name);
+}
+function rivalsText(p, t) {
+  const w = winOutlook(p, t);
+  return w.field.map((x, i) => `- ${i + 1}. ${x.name}${x.me ? ' (a vizsgált cég)' : ''}: ${x.win} pont${x.here ? `, itt ${x.here}× nyert` : ''}${x.name === w.inc ? ', az előző hasonló szerződés nyertese' : ''}`).join('\n');
+}
+function partnerLine(p, t) {
+  const ps = partnersFor(p, t, evaluate(p, t));
+  return ps.length ? '\nLehetséges partnerek a hiányzó alkalmassági feltételekhez (a 3. és a 6. fejezetben javasold őket): ' + ps.map(x => `${x.q.code}: ${x.cands.map(o => o.c.name).join(' vagy ')}`).join('; ') + '\n' : '';
 }
 
 /* ---------- AI (sample) ---------- */
@@ -886,7 +1040,7 @@ Szabályok:
 - Magyarul válaszolj.
 
 Válaszolj KIZÁRÓLAG egy JSON-objektummal, ebben a szerkezetben:
-{"javaslat":"indulj","osszegzes":"legfeljebb 2 mondat","kovetelmenyek":[{"kod":"M.1","statusz":"megfelel","indoklas":"1 rövid mondat"}],"nyeresi_esely":"1 mondat az értékelési szempontok és a korábbi eredmények alapján","teendok":["legfeljebb 4 rövid, konkrét teendő"]}
+{"javaslat":"indulj","osszegzes":"legfeljebb 2 mondat","kovetelmenyek":[{"kod":"M.1","statusz":"megfelel","indoklas":"1 rövid mondat"}],"nyeresi_esely":"1 mondat az értékelési szempontok, a korábbi eredmények és a várható ajánlattevők alapján","teendok":["legfeljebb 4 rövid, konkrét teendő"]}
 A "javaslat" értéke pontosan egy ezek közül: "indulj", "konzorciummal", "ne indulj".
 A "statusz" értéke pontosan egy ezek közül: "megfelel", "részben", "nem felel meg", "nem derül ki".
 A "kovetelmenyek" tömbben minden alkalmassági követelményhez pontosan egy elem legyen, a kiírásban szereplő kóddal.
@@ -898,7 +1052,10 @@ KIÍRÁS
 ${tenderText(t)}
 
 KORÁBBI EREDMÉNYEK ENNÉL AZ AJÁNLATKÉRŐNÉL
-${historyText(t)}`;
+${historyText(t)}
+
+VÁRHATÓ AJÁNLATTEVŐK (becsült pontszám; a versenytársaké nyilvános adatokból, a vizsgált cégé a teljes profilból)
+${rivalsText(p, t)}`;
 }
 function promptDraft(p, t, notes) {
   return `Te tapasztalt magyar közbeszerzési ajánlatíró vagy. Írj ajánlat-tervezetet az alábbi cég nevében az alábbi kiírásra. Ez munkaanyag, amelyet a cég szakembere véglegesít.
@@ -920,7 +1077,7 @@ Fejezetek, pontosan ebben a sorrendben:
 ## 5. Benyújtandó dokumentumok – ellenőrzőlista
 ## 6. Nyitott kérdések, kockázatok
 
-Az 5. fejezethez ezt a listát használd kiindulásnak, és ne egészítsd ki jogszabályhelyekkel: ${docList(t).join('; ')}.
+Az 5. fejezethez ezt a listát használd kiindulásnak, és ne egészítsd ki jogszabályhelyekkel: ${docList(t).join('; ')}.${partnerLine(p, t)}
 ${notes ? '\nA cég kérése, ezt mindenképp vedd figyelembe: ' + notes + '\n' : ''}
 CÉGPROFIL
 ${profileText(p)}
@@ -930,6 +1087,7 @@ ${tenderText(t)}`;
 }
 function templateDraft(p, t) {
   const ev = evaluate(p, t);
+  const pmap = Object.fromEntries(partnersFor(p, t, ev).map(x => [x.q.code, x.cands.map(o => o.c.name).join(' vagy ')]));
   const L = [];
   L.push(`# Ajánlat-tervezet – ${t.title}`);
   L.push('_Sablonból, AI nélkül készült munkaanyag. A [KITÖLTENDŐ] részeket a cég szakembere egészíti ki._');
@@ -945,7 +1103,7 @@ function templateDraft(p, t) {
   if (p.strengths) L.push(`- **Erősségeink:** ${p.strengths}`);
   L.push('## 3. Alkalmasság igazolása');
   ev.reqs.forEach(q => {
-    const fix = q.st === 'fail' ? ' [KITÖLTENDŐ: konzorciumi partner, alvállalkozó vagy kapacitást nyújtó szervezet]' : q.st !== 'ok' ? ' [KITÖLTENDŐ: igazolás]' : '';
+    const fix = q.st === 'fail' ? ` [KITÖLTENDŐ: konzorciumi partner, alvállalkozó vagy kapacitást nyújtó szervezet${pmap[q.code] ? '; jelölt: ' + pmap[q.code] : ''}]` : q.st !== 'ok' ? ' [KITÖLTENDŐ: igazolás]' : '';
     L.push(`- **${q.code}** – ${q.text} → ${ST_LABEL[q.st].slice(2)}: ${q.why}.${fix}`);
   });
   L.push('## 4. Javasolt vállalások az értékelési szempontokra');
@@ -1032,7 +1190,7 @@ async function runDraft(t, again) {
 /* ---------- shell ---------- */
 function paintPicker() {
   const sel = $('#pick-profile');
-  sel.innerHTML = profiles.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  sel.innerHTML = (temp ? `<option value="${TEMP}">Keresett: ${esc(temp.name)}</option>` : '') + profiles.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
   sel.value = state.pid;
 }
 function paintAiChip() {
@@ -1044,6 +1202,8 @@ function paintAiChip() {
 function setTab(tab) { state.tab = tab; state.confirm = null; saveUi(); renderTab(); window.scrollTo(0, 0); }
 function switchProfile(pid, rerender = true) {
   state.pid = pid; state.confirm = null; saveUi(); paintPicker();
+  const F = state.finder;
+  if ((F.company && pid !== TEMP && fold(prof().name) !== fold(F.company.name)) || (F.status === 'created' && pid !== TEMP)) state.finder = freshFinder();
   if (rerender) renderTab();
   if (state.open) renderDrawer();
 }
@@ -1051,7 +1211,8 @@ function renderTab() {
   $$('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === state.tab)));
   const v = $('#view');
   v.setAttribute('aria-labelledby', 'tab-' + state.tab);
-  if (state.tab === 'tenders') { v.innerHTML = viewTenders(); afterTenders(); }
+  if (state.tab === 'finder') { v.innerHTML = viewFinder(); afterFinder(); }
+  else if (state.tab === 'tenders') { v.innerHTML = viewTenders(); afterTenders(); }
   else if (state.tab === 'market') v.innerHTML = viewMarket();
   else if (state.tab === 'report') { v.innerHTML = viewReport(); $('#rep-freq').value = report.freq; }
   else if (state.tab === 'profile') v.innerHTML = viewProfile();
@@ -1086,7 +1247,7 @@ function viewTenders() {
     <section aria-labelledby="res-h">
       <div class="res-head">
         <div><h1 class="h1" id="res-h">Nyitott kiírások</h1><p class="sub" id="res-sum"></p></div>
-        <div class="field inline"><label for="f-sort">Rendezés</label><select id="f-sort" data-filter="sort"><option value="fit">Illeszkedés szerint</option><option value="due">Határidő szerint</option><option value="value">Érték szerint</option><option value="new">Legújabb elöl</option></select></div>
+        <div class="field inline"><label for="f-sort">Rendezés</label><select id="f-sort" data-filter="sort"><option value="fit">Illeszkedés szerint</option><option value="win">Nyerési esély szerint</option><option value="due">Határidő szerint</option><option value="value">Érték szerint</option><option value="new">Legújabb elöl</option></select></div>
       </div>
       <div class="tlist" id="tlist"></div>
     </section>
@@ -1113,19 +1274,20 @@ function filteredTenders(all) {
   if (!Number.isNaN(max)) list = list.filter(({ t }) => t.value <= max);
   const S = {
     fit: (a, b) => b.ev.total - a.ev.total || a.t.dueIn - b.t.dueIn,
+    win: (a, b) => LVL[b.w.level] - LVL[a.w.level] || a.w.rank - b.w.rank || b.ev.total - a.ev.total,
     due: (a, b) => a.t.dueIn - b.t.dueIn,
     value: (a, b) => b.t.value - a.t.value,
     new: (a, b) => a.t.pubAgo - b.t.pubAgo || b.ev.total - a.ev.total,
   };
   return list.sort(S[f.sort] || S.fit);
 }
-function tenderRow({ t, ev }) {
+function tenderRow({ t, ev, w }) {
   return `<button class="trow" type="button" data-open="${t.id}">
     <span class="fit ${ev.tier}"><span class="sr">Illeszkedés: </span>${ev.total}</span>
     <span class="tmain">
       <span class="ttitle">${esc(t.title)}</span>
       <span class="tmeta">${esc(t.buyer)} · ${esc(REG[t.nuts])} · ${esc(t.procedure)}</span>
-      <span class="tchips">${t.pubAgo <= 2 ? '<span class="chip new">Új</span>' : ''}<span class="chip mono">${esc(t.cpv)}</span><span class="chip">${esc(t.regime)}</span><span class="chip">${esc(t.funding)}</span></span>
+      <span class="tchips">${t.pubAgo <= 2 ? '<span class="chip new">Új</span>' : ''}<span class="chip win-${w.level}">${LEVEL[w.level]} · ${w.rank}. hely / ${w.field.length}</span><span class="chip mono">${esc(t.cpv)}</span><span class="chip">${esc(t.regime)}</span><span class="chip">${esc(t.funding)}</span></span>
     </span>
     <span class="tside">
       <span class="tval">${fmtM(t.value)}</span>
@@ -1137,11 +1299,12 @@ function tenderRow({ t, ev }) {
 }
 function paintList() {
   const p = prof();
-  const all = TENDERS.map(t => ({ t, ev: evaluate(p, t) }));
+  const all = TENDERS.map(t => { const w = winOutlook(p, t); return { t, ev: w.ev, w }; });
   const list = filteredTenders(all);
   const fitN = all.filter(x => x.ev.total >= 50).length;
   const newN = all.filter(x => x.t.pubAgo <= 2 && x.ev.total >= 50).length;
-  $('#res-sum').innerHTML = `<b>${esc(p.name)}</b>: ${all.length} nyitott kiírásból ${fitN} illik a profilhoz${newN ? `, ebből ${newN} új` : ''}.`
+  const firstN = all.filter(x => x.ev.total >= 50 && x.w.rank === 1).length;
+  $('#res-sum').innerHTML = `<b>${esc(p.name)}</b>: ${all.length} nyitott kiírásból ${fitN} illik a profilhoz${newN ? `, ebből ${newN} új` : ''}${firstN ? `; ${firstN} kiírásban az első helyen áll a várható ajánlattevők közül` : ''}.`
     + (list.length !== (state.f.onlyFit ? fitN : all.length) ? ` A szűrőkkel ${list.length} látszik.` : '')
     + (state.f.onlyFit ? ' <button class="link" type="button" data-act="show-all">Mutasd mindet</button>' : '');
   $('#tlist').innerHTML = list.length ? list.map(tenderRow).join('')
@@ -1168,7 +1331,8 @@ function closeDrawer() {
 }
 function renderDrawer() {
   const t = curTender(); if (!t) return;
-  const p = prof(), ev = evaluate(p, t), k = qkey(p, t);
+  const p = prof(), w = winOutlook(p, t), ev = w.ev, k = qkey(p, t);
+  const partners = partnersFor(p, t, ev);
   if (!mem.draft[k] && drafts[k] && typeof drafts[k].text === 'string') mem.draft[k] = { status: 'done', text: drafts[k].text, source: drafts[k].source === 'tpl' ? 'tpl' : 'ai' };
   const hist = AWARDS.filter(a => a.buyer === t.buyer).sort((a, b) => a.daysAgo - b.daysAgo);
   const facts = [
@@ -1205,6 +1369,13 @@ function renderDrawer() {
       <p class="small muted">CPV: <span class="mono">${esc(t.cpv)}</span> ${esc(cpvName(t.cpv))}${t.cpvExtra.map(c => ` · <span class="mono">${esc(c)}</span> ${esc(cpvName(c))}`).join('')}</p></section>
     <section class="dsec"><h3>Illeszkedés ${aAz(p.name)} ${esc(p.name)} profiljához</h3>
       <div class="bd">${parts.map(([l, x]) => `<div class="bd-row"><div class="bd-l">${l}</div><div class="bd-m" aria-hidden="true"><span style="width:${(x.score / x.max) * 100}%"></span></div><div class="bd-s">${x.score}/${x.max}</div><div class="bd-w">${esc(x.why)}</div></div>`).join('')}</div></section>
+    <section class="dsec"><h3>Nyerési esély és várható ajánlattevők</h3>
+      <p class="verdict v-${w.level === 'high' ? 'go' : w.level === 'mid' ? 'cond' : 'cons'}">${LEVEL[w.level]}: ${esc(w.reasons[0])}.</p>
+      <ol class="rank">${w.field.map((x, i) => `<li class="${x.me ? 'me' : ''}"><span class="rk">${i + 1}.</span><span class="rn">${esc(x.name)}${x.me ? '<span class="chip tiny me">Te</span>' : ''}${x.name === w.inc ? '<span class="chip tiny">előző nyertes</span>' : ''}${x.here ? `<span class="chip tiny">itt ${x.here}× nyert</span>` : ''}</span><span class="rs">${x.win}</span></li>`).join('')}</ol>
+      ${w.reasons.length > 1 ? `<ul class="bullets">${w.reasons.slice(1).map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+      ${partners.length ? `<p class="insight"><b>Partnerjelölt a hiányzó feltételhez:</b> ${partners.map(x => `${esc(x.q.code)}: ${x.cands.map(o => `${esc(o.c.name)} (${esc(o.r.why)})`).join(', ')}`).join('; ')}</p>` : ''}
+      <p class="small muted">A versenytársak pontszámát nyilvános adatokból becsüljük: tevékenység, székhely, árbevétel, korábbi nyertes eljárások. A szakember- és tanúsítványfeltételeiket semlegesnek vesszük. Aki már nyert ennél az ajánlatkérőnél, +6, az előző hasonló szerződés nyertese további +4 pontot kap.</p>
+    </section>
     <section class="dsec"><h3>Alkalmassági követelmények</h3>
       <p class="verdict v-${ev.verdict.k}">${esc(ev.verdict.label)}</p>
       <ul class="reqs">${ev.reqs.map(q => `<li class="req"><span class="req-code mono">${esc(q.code)}</span><div class="req-body"><p>${esc(q.text)}</p><p class="req-auto">${stChip(q.st)} <span class="muted">${esc(q.why)}</span></p><p class="req-ai" data-ai-req="${esc(q.code)}" hidden></p></div></li>`).join('')}</ul>
@@ -1411,12 +1582,14 @@ function viewProfile() {
   let danger;
   if (state.confirm === 'reset') danger = '<div class="confirm">A módosításaid elvesznek. Biztosan visszaállítod? <button class="btn danger" type="button" data-act="do-reset">Visszaállítás</button><button class="btn" type="button" data-act="cancel-confirm">Mégse</button></div>';
   else if (state.confirm === 'delete') danger = '<div class="confirm">A profil és a hozzá tartozó figyelőlista törlődik. Biztosan? <button class="btn danger" type="button" data-act="do-delete">Törlés</button><button class="btn" type="button" data-act="cancel-confirm">Mégse</button></div>';
+  else if (p.id === TEMP) danger = '<div class="btn-row"><button class="btn primary" type="button" data-act="save-temp">Mentés ügyfélként</button><button class="btn ghost" type="button" data-act="discard-temp">Ideiglenes profil elvetése</button></div>';
   else danger = `<div class="btn-row">${isDefault ? '<button class="btn" type="button" data-act="ask-reset">Visszaállítás a példaadatra</button>' : ''}${profiles.length > 1 ? '<button class="btn ghost" type="button" data-act="ask-delete">Profil törlése</button>' : ''}<button class="btn ghost" type="button" data-act="new-profile">Új cégprofil</button></div>`;
   return `${NOTICE}<div class="page-head"><div><h1 class="h1">Cégprofil</h1><p class="sub">Ebből számoljuk az illeszkedést, és ezt kapja az AI az elemzéshez és az ajánlat-tervezethez. A módosítások ebben a böngészőben maradnak meg.</p></div></div>
   <div class="pform">
+    ${p.id === TEMP ? tempBar() : ''}
     <section class="card"><div class="card-h"><h2>Alapadatok</h2></div>
       <div class="fgrid">
-        ${fld('name', 'Cégnév', p.name)}${fld('sector', 'Tevékenység', p.sector)}${fld('hq', 'Székhely', p.hq)}
+        ${fld('name', 'Cégnév', p.name)}${fld('tax', 'Adószám', p.tax)}${fld('sector', 'Tevékenység', p.sector)}${fld('hq', 'Székhely', p.hq)}
         ${fld('revenue', 'Utolsó éves nettó árbevétel (M Ft)', p.revenue, 'number')}${fld('employees', 'Létszám (fő)', p.employees, 'number')}
         ${area('about', 'Bemutatkozás', p.about)}${area('strengths', 'Erősségek – az AI ezeket emeli ki az ajánlatban', p.strengths)}
       </div></section>
@@ -1456,15 +1629,15 @@ function viewProfile() {
 /* ---------- clients view ---------- */
 function viewClients() {
   const cards = profiles.map(p => {
-    const evs = TENDERS.map(t => ({ t, ev: evaluate(p, t) })).filter(x => x.ev.total >= 60).sort((a, b) => b.ev.total - a.ev.total);
-    const newN = evs.filter(x => x.t.pubAgo <= 3).length;
+    const evs = TENDERS.map(t => { const w = winOutlook(p, t); return { t, ev: w.ev, w }; }).filter(x => x.ev.total >= 60).sort((a, b) => b.ev.total - a.ev.total);
+    const firstN = evs.filter(x => x.w.rank === 1).length;
     const next = evs.slice().sort((a, b) => a.t.dueIn - b.t.dueIn)[0];
     const sum = evs.reduce((s, x) => s + x.t.value, 0);
     return `<article class="card client">
-      <div class="card-h"><div><h2>${esc(p.name)}</h2><p class="small muted">${esc(p.sector || 'Tevékenység nincs megadva')}${p.hq ? ' · ' + esc(p.hq) : ''}</p></div>${p.id === state.pid ? '<span class="chip new">Aktív</span>' : ''}</div>
+      <div class="card-h"><div><h2>${esc(p.name)}</h2><p class="small muted">${esc(p.sector || 'Tevékenység nincs megadva')}${p.hq ? ' · ' + esc(p.hq) : ''}${p.tax ? ' · <span class="mono">' + esc(p.tax) + '</span>' : ''}</p></div>${p.id === state.pid ? '<span class="chip new">Aktív</span>' : ''}</div>
       <div class="mini-stats">
         <div><b>${evs.length}</b><span>illeszkedő kiírás</span></div>
-        <div><b>${newN}</b><span>új az elmúlt 3 napban</span></div>
+        <div><b>${firstN}</b><span>kiírásban első helyen</span></div>
         <div><b>${next ? daysLabel(next.t.dueIn) : '–'}</b><span>a legközelebbi határidőig</span></div>
         <div><b>${sum ? fmtM(sum) : '–'}</b><span>becsült érték összesen</span></div>
       </div>
@@ -1472,7 +1645,228 @@ function viewClients() {
       <div class="btn-row"><button class="btn primary" type="button" data-act="client-open" data-pid="${esc(p.id)}">Tenderek</button><button class="btn" type="button" data-act="client-edit" data-pid="${esc(p.id)}">Profil szerkesztése</button></div>
     </article>`;
   }).join('');
-  return `${NOTICE}<div class="page-head"><div><h1 class="h1">Ügyfeleim</h1><p class="sub">Tanácsadói nézet: az összes cégprofil egy helyen, a 60 pont feletti illeszkedéssel számolva.</p></div><button class="btn primary" type="button" data-act="new-profile">Új cégprofil</button></div><div class="clients">${cards}</div>`;
+  return `${NOTICE}<div class="page-head"><div><h1 class="h1">Ügyfeleim</h1><p class="sub">Tanácsadói nézet: az összes cégprofil egy helyen, a 60 pont feletti illeszkedéssel számolva.</p></div><button class="btn primary" type="button" data-act="goto-finder">Új ügyfél adószám alapján</button></div><div class="clients">${cards}</div>`;
+}
+
+/* ---------- company finder ---------- */
+const EXAMPLES = ['99990024-2-08', 'Hajdú Gasztro', 'Adatkapu', 'Kovács és Társa Kft.'];
+function freshFinder() { return { q: '', status: 'idle', msg: '', company: null, list: [], savedId: null, manual: null }; }
+const blankManual = (name, tax) => ({ name, tax, nuts: '', sector: '', revenue: '', employees: '', desc: '', aiCpv: null, ai: null });
+function validateTax(d) {
+  if (d.length !== 8 && d.length !== 11) return { ok: false, msg: 'Az adószám 11 számjegyből áll (pl. 12345678-2-41), vagy add meg csak a 8 jegyű törzsszámot.' };
+  const w = [9, 7, 3, 1, 9, 7, 3];
+  const sum = w.reduce((a, x, i) => a + x * Number(d[i]), 0);
+  if ((10 - (sum % 10)) % 10 !== Number(d[7])) return { ok: false, msg: 'Ez nem érvényes adószám: a törzsszám ellenőrző számjegye (a 8. jegy) nem stimmel.' };
+  if (d.length === 11) {
+    if (!'12345'.includes(d[8])) return { ok: false, msg: 'Érvénytelen ÁFA-kód: a 9. számjegy csak 1–5 lehet.' };
+    const area = Number(d.slice(9));
+    if (!((area >= 2 && area <= 20) || (area >= 22 && area <= 44) || area === 51)) return { ok: false, msg: 'Érvénytelen területi kód (az utolsó két számjegy).' };
+  }
+  return { ok: true, tz: d.slice(0, 8), pretty: d.length === 11 ? `${d.slice(0, 8)}-${d[8]}-${d.slice(9)}` : d.slice(0, 8) };
+}
+function finderSearch(raw) {
+  const F = state.finder, q = String(raw || '').trim();
+  Object.assign(F, { q, list: [], company: null, savedId: null, msg: '', manual: null });
+  if (!q) { F.status = 'idle'; return; }
+  const compact = q.replace(/^hu/i, '').replace(/[\s.\-]/g, '');
+  if (/^\d+$/.test(compact)) {
+    const v = validateTax(compact);
+    if (!v.ok) { F.status = 'invalid'; F.msg = v.msg; return; }
+    const c = REGISTRY.find(x => digits(x.tax).slice(0, 8) === v.tz);
+    if (c) { activateCompany(c); return; }
+    F.status = 'notfound'; F.msg = `Érvényes adószám (${v.pretty}), de nincs a példa-cégadatbázisban.`; F.manual = blankManual('', v.pretty);
+    return;
+  }
+  if (fold(q).length < 2) { F.status = 'invalid'; F.msg = 'Adj meg legalább 2 betűt a cégnévből.'; return; }
+  const hits = REGISTRY.filter(x => fold(x.name).includes(fold(q)));
+  if (hits.length === 1) { activateCompany(hits[0]); return; }
+  if (hits.length > 1) { F.status = 'many'; F.list = hits; return; }
+  F.status = 'notfound'; F.msg = `„${q}” nincs a példa-cégadatbázisban.`; F.manual = blankManual(q, '');
+}
+function setTemp(base) {
+  temp = normProfile(Object.assign({}, base, { id: TEMP, custom: true }));
+  temp.defaultWatch = topRivals(temp);
+  delete watch[TEMP]; store.set(KEY.watch, watch);
+  Object.keys(drafts).forEach(k => { if (k.startsWith(TEMP + ':')) delete drafts[k]; });
+  store.set(KEY.drafts, drafts);
+  ['qual', 'draft', 'notes'].forEach(b => Object.keys(mem[b]).forEach(k => { if (k.startsWith(TEMP + ':')) delete mem[b][k]; }));
+  state.pid = TEMP; state.confirm = null; saveUi(); paintPicker();
+}
+function activateCompany(c) {
+  const F = state.finder;
+  F.status = 'found'; F.company = c;
+  const saved = profiles.find(p => (p.tax && digits(p.tax).slice(0, 8) === digits(c.tax).slice(0, 8)) || fold(p.name) === fold(c.name));
+  F.savedId = saved ? saved.id : null;
+  if (saved) { if (state.pid !== saved.id) { state.pid = saved.id; saveUi(); paintPicker(); } }
+  else setTemp(clone(publicProfile(c)));
+}
+function saveTemp() {
+  if (!temp) return;
+  const id = 'p' + Date.now().toString(36), name = temp.name;
+  profiles.push(normProfile(Object.assign(clone(temp), { id, custom: true })));
+  const move = obj => Object.keys(obj).forEach(k => { if (k.startsWith(TEMP + ':')) { obj[id + k.slice(TEMP.length)] = obj[k]; delete obj[k]; } });
+  move(drafts); store.set(KEY.drafts, drafts);
+  ['qual', 'draft', 'notes'].forEach(b => move(mem[b]));
+  watch[id] = getWatch(temp); delete watch[TEMP]; store.set(KEY.watch, watch);
+  temp = null; saveProfiles();
+  if (state.finder.status === 'found') state.finder.savedId = id;
+  if (state.finder.status === 'created') state.finder = freshFinder();
+  state.pid = id; saveUi(); paintPicker(); renderTab();
+  toast(`${name} elmentve ügyfélként`);
+}
+function discardTemp() {
+  temp = null; state.finder = freshFinder(); state.pid = profiles[0].id; saveUi(); paintPicker(); renderTab();
+}
+function createManual() {
+  const m = state.finder.manual; if (!m) return;
+  if (!m.name.trim()) { toast('Add meg a cég nevét.'); $('#mf-name')?.focus(); return; }
+  if (!SECTORS[m.sector]) { toast('Válaszd ki a főtevékenységet, vagy kérj AI-besorolást.'); $('#mf-sector')?.focus(); return; }
+  const sec = SECTORS[m.sector];
+  setTemp({ name: m.name.trim(), tax: m.tax, sector: sec.name, hq: REG[m.nuts] || '', about: m.desc, revenue: Number(m.revenue) || 0, employees: Number(m.employees) || 0, cpv: m.aiCpv || sec.cpv, regions: m.nuts ? [m.nuts] : [], references: [], staff: [], certs: [], strengths: '' });
+  state.finder.status = 'created';
+  renderTab();
+}
+function promptClassify(m) {
+  return `Sorold be az alábbi magyar céget egy tevékenységi kategóriába, és válaszd ki a hozzá illő CPV-kódokat. Csak a lenti listákból választhatsz, a cégről semmilyen tényt ne találj ki.
+
+Cégnév: ${m.name || 'nincs megadva'}
+Mivel foglalkozik: ${m.desc || 'nincs megadva'}
+
+Kategóriák (azonosító – TEÁOR – megnevezés):
+${Object.entries(SECTORS).map(([id, s]) => `- ${id} – ${s.teaor} – ${s.name}`).join('\n')}
+
+CPV-kódok:
+${Object.keys(CPV).map(c => `- ${c} – ${CPV[c]}`).join('\n')}
+
+Válaszolj KIZÁRÓLAG egy JSON-objektummal: {"szektor":"road","cpv":["45233140-2"],"indoklas":"1 rövid mondat magyarul"}
+A "szektor" pontosan egy azonosító a kategóriák közül (ha egyik sem illik pontosan, a legközelebbi). A "cpv" legfeljebb 6 kód a fenti listából.`;
+}
+async function aiClassify() {
+  const m = state.finder.manual; if (!m) return;
+  if (!m.desc.trim() && !m.name.trim()) { toast('Írd le egy mondatban, mivel foglalkozik a cég.'); return; }
+  const sample = await samplePromise;
+  if (!sample) { setAiOff(); renderTab(); return; }
+  m.ai = { status: 'running' }; renderTab();
+  try {
+    const d = await sample.json(promptClassify(m), { modelTier: 'quick' });
+    const sec = d && typeof d === 'object' && SECTORS[d.szektor] ? d.szektor : null;
+    if (!sec) throw { code: 'invalid_json' };
+    const cpv = Array.isArray(d.cpv) ? [...new Set(d.cpv.map(String).filter(c => CPV[c]))].slice(0, 6) : [];
+    m.sector = sec; m.aiCpv = cpv.length ? cpv : null; m.ai = { status: 'done', why: String(d.indoklas || '') };
+  } catch (e) {
+    m.ai = { status: 'error', err: aiErr(e && e.code) };
+    if (e && PERMANENT.has(e.code)) setAiOff();
+  }
+  if (state.tab === 'finder' && state.finder.manual === m) renderTab();
+}
+const tempBar = () => (temp ? `<div class="temp-bar"><span>Most <b>${esc(temp.name)}</b> szemszögéből látod az oldalt. Ez ideiglenes profil, mentsd ügyfélként, hogy megmaradjon.</span><span class="btn-row"><button class="btn primary" type="button" data-act="save-temp">Mentés ügyfélként</button>${state.tab === 'finder' ? '<button class="btn" type="button" data-act="goto-profile">Profil finomítása</button>' : ''}</span></div>` : '');
+const stepsHtml = () => `<ol class="steps">
+  <li><b>1. Azonosítás</b><span class="small">Adószám (ellenőrző számjeggyel validálva) vagy cégnév alapján megkeressük a céget.</span></li>
+  <li><b>2. Besorolás</b><span class="small">A főtevékenységből (TEÁOR) és a korábbi nyertes eljárásokból CPV-kódokat, célterületet és referenciákat képzünk.</span></li>
+  <li><b>3. Esélyek</b><span class="small">Minden nyitott kiírásra kiszámoljuk az illeszkedést és a helyezést a várható ajánlattevők között.</span></li>
+</ol>`;
+function profileChips(p) {
+  return `<div class="derived">
+    <p class="lbl">Ebből számolt közbeszerzési profil</p>
+    <div class="chips">${p.cpv.slice(0, 8).map(c => `<span class="chip"><span class="mono">${esc(c)}</span>&nbsp;${esc(cpvName(c))}</span>`).join('') || '<span class="muted small">Nincs CPV-kód</span>'}</div>
+    <p class="small">Célterület: ${esc(p.regions.map(r => REG[r] || r).join(', ') || 'nincs megadva')} · Árbevétel: ${p.revenue ? fmtM(p.revenue) : 'nincs megadva'} · Referencia: ${p.references.length} db</p>
+  </div>`;
+}
+function companyCard(c) {
+  const s = companyStats(c.name), sec = SECTORS[c.sector], saved = !!state.finder.savedId;
+  const facts = [
+    ['Adószám', `<span class="mono">${esc(c.tax)}</span>`],
+    ['Cégjegyzékszám', `<span class="mono">${esc(c.cegj)}</span>`],
+    ['Székhely', `${esc(c.city)} <span class="muted">(${esc(REG[c.nuts])})</span>`],
+    ['Főtevékenység (TEÁOR)', `<span class="mono">${sec.teaor}</span> ${esc(sec.name)}`],
+    ['Alapítás éve', String(c.founded)],
+    ['Nettó árbevétel', `${fmtM(c.revenue)} <span class="muted">utolsó beszámoló</span>`],
+    ['Létszám', `${c.employees} fő`],
+    ['Közbeszerzési múlt', s.wins ? `${s.wins} nyertes eljárás, ${fmtM(s.total)}` : 'Nincs nyertes eljárás'],
+  ];
+  return `<section class="card" aria-labelledby="cc-h">
+    <div class="card-h"><div><p class="eyebrow">Cégadatlap · példa cégadatbázis</p><h2 id="cc-h" style="font-size:22px">${esc(c.name)}</h2></div>${saved ? '<span class="chip new">Mentett ügyfél</span>' : '<span class="chip">Ideiglenes profil</span>'}</div>
+    <dl class="facts">${facts.map(([a, b]) => `<div class="fact"><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl>
+    ${profileChips(prof())}
+    ${saved ? '<p class="small muted">Ez a cég már ügyfél, ezért a részletes, mentett profilját használjuk.</p>' : '<p class="small muted">A referenciák a cég korábbi nyertes eljárásaiból jönnek. A szakembereket és a tanúsítványokat a Cégprofil fülön adhatod hozzá.</p>'}
+    <p class="small muted">Élesben az alapadatok és a tevékenység az e-cégjegyzékből, az árbevétel és a létszám az e-beszámolóból, a nyertes eljárások a TED és az EKR eredményhirdetéseiből jönnének. Az Opten mindezt előfizetéssel egy helyen adja.</p>
+  </section>`;
+}
+function createdCard(p) {
+  return `<section class="card" aria-labelledby="cr-h">
+    <div class="card-h"><div><p class="eyebrow">Kézzel megadott cég</p><h2 id="cr-h" style="font-size:22px">${esc(p.name)}</h2></div><span class="chip">Ideiglenes profil</span></div>
+    ${profileChips(p)}
+    <p class="small muted">Referencia nélkül a referenciafeltételek nem teljesülnek. Add hozzá őket a Cégprofil fülön, és pontosabb lesz a rangsor.</p>
+  </section>`;
+}
+function manualForm(F) {
+  const m = F.manual, running = m.ai && m.ai.status === 'running';
+  return `<p class="small" role="status">${esc(F.msg)} Élesben itt az e-cégjegyzék vagy az Opten adná vissza a cégadatokat. Addig add meg a legfontosabbakat, és ebből számolunk.</p>
+  <section class="card" aria-labelledby="mf-h">
+    <div class="card-h"><h2 id="mf-h">Cégadatok kézzel</h2></div>
+    <div class="fgrid">
+      <div class="field"><label for="mf-name">Cégnév</label><input type="text" id="mf-name" data-mf="name" value="${esc(m.name)}"></div>
+      <div class="field"><label for="mf-tax">Adószám (nem kötelező)</label><input type="text" id="mf-tax" data-mf="tax" value="${esc(m.tax)}"></div>
+      <div class="field"><label for="mf-nuts">Székhely megyéje</label><select id="mf-nuts" data-mf="nuts"><option value="">Válassz…</option>${Object.keys(REG).filter(r => r !== 'ORSZ').map(r => `<option value="${r}">${esc(REG[r])}</option>`).join('')}</select></div>
+      <div class="field"><label for="mf-revenue">Nettó árbevétel (M Ft)</label><input type="number" min="0" inputmode="numeric" id="mf-revenue" data-mf="revenue" value="${esc(m.revenue)}"></div>
+      <div class="field"><label for="mf-employees">Létszám (fő)</label><input type="number" min="0" inputmode="numeric" id="mf-employees" data-mf="employees" value="${esc(m.employees)}"></div>
+      <div class="field"><label for="mf-sector">Főtevékenység (TEÁOR)</label><select id="mf-sector" data-mf="sector"><option value="">Válassz…</option>${Object.entries(SECTORS).map(([id, s]) => `<option value="${id}">${s.teaor} ${esc(s.name)}</option>`).join('')}</select></div>
+      <div class="field full"><label for="mf-desc">Vagy írd le egy mondatban, mivel foglalkozik, és az AI besorolja</label><textarea id="mf-desc" data-mf="desc" rows="2" placeholder="Pl. önkormányzati utak és járdák felújítása, aszfaltozás Győr környékén">${esc(m.desc)}</textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" type="button" data-act="finder-ai"${running || ai.state === 'off' ? ' disabled' : ''}>Besorolás AI-jal</button>
+      <button class="btn primary" type="button" data-act="finder-create">Profil létrehozása</button>
+    </div>
+    ${running ? thinking('Az AI besorolja a céget…') : ''}
+    ${m.ai && m.ai.status === 'done' && SECTORS[m.sector] ? `<p class="insight">AI-besorolás: <b>${esc(SECTORS[m.sector].teaor)} ${esc(SECTORS[m.sector].name)}</b>${m.aiCpv ? `; CPV: ${m.aiCpv.map(esc).join(', ')}` : ''}. ${esc(m.ai.why)}</p>` : ''}
+    ${m.ai && m.ai.status === 'error' ? `<p class="err">${esc(m.ai.err)}</p>` : ''}
+    ${ai.state === 'off' ? '<p class="small muted">Az AI-besorolás a claude.ai-on megnyitva működik. Addig válaszd ki a főtevékenységet a listából.</p>' : ''}
+  </section>`;
+}
+function winRow({ t, ev, w }) {
+  return `<button class="wrow" type="button" data-open="${t.id}">
+    <span class="fit ${ev.tier}"><span class="sr">Illeszkedés: </span>${ev.total}</span>
+    <span class="tmain"><span class="ttitle">${esc(t.title)}</span><span class="tmeta">${esc(t.buyer)} · ${esc(REG[t.nuts])}</span>
+      <span class="reasons"><span class="chip win-${w.level}">${LEVEL[w.level]} · ${w.rank}. hely / ${w.field.length}</span>${w.reasons.slice(1, 3).map(r => `<span class="chip">${esc(r)}</span>`).join('')}</span></span>
+    <span class="tside"><span class="tval">${fmtM(t.value)}</span><span class="due ${dueCls(t)}">${daysLabel(t.dueIn)}</span></span>
+  </button>`;
+}
+function resultsHtml(p) {
+  const rows = TENDERS.map(t => { const w = winOutlook(p, t); return { t, ev: w.ev, w }; }).filter(x => x.ev.total >= 50);
+  const first = rows.filter(x => x.w.rank === 1).sort((a, b) => LVL[b.w.level] - LVL[a.w.level] || b.ev.total - a.ev.total);
+  const rest = rows.filter(x => x.w.rank > 1).sort((a, b) => a.w.rank - b.w.rank || b.ev.total - a.ev.total);
+  return `<section class="card" aria-labelledby="first-h">
+      <div class="card-h"><h2 id="first-h">Itt lenne az első (${first.length})</h2><span class="small muted">${TENDERS.length} nyitott kiírásból ${rows.length} illik hozzá</span></div>
+      ${first.length ? first.map(winRow).join('') : '<p class="muted">Most nincs olyan nyitott kiírás, ahol a várható ajánlattevők közül az első helyen állna.</p>'}
+    </section>
+    <section class="card" aria-labelledby="rest-h">
+      <div class="card-h"><h2 id="rest-h">Illeszkedik, de erősebb a verseny (${rest.length})</h2></div>
+      ${rest.length ? rest.map(winRow).join('') : '<p class="muted">Nincs ilyen kiírás.</p>'}
+    </section>`;
+}
+function viewFinder() {
+  const F = state.finder, p = prof();
+  let body = '';
+  if (F.status === 'invalid') body = `<p class="form-err" role="alert">${esc(F.msg)}</p>${stepsHtml()}`;
+  else if (F.status === 'many') body = `<section class="card"><div class="card-h"><h2>Több találat (${F.list.length})</h2><span class="small muted">válaszd ki a céget</span></div><div class="btn-row">${F.list.map(c => `<button class="btn" type="button" data-act="finder-pick" data-tax="${esc(c.tax)}">${esc(c.name)}</button>`).join('')}</div></section>`;
+  else if (F.status === 'notfound' && F.manual) body = manualForm(F);
+  else if (F.status === 'found' && F.company) body = (state.pid === TEMP ? tempBar() : '') + companyCard(F.company) + resultsHtml(p);
+  else if (F.status === 'created' && state.pid === TEMP && temp) body = tempBar() + createdCard(p) + resultsHtml(p);
+  else body = stepsHtml();
+  return `${NOTICE}
+  <div class="page-head"><div><h1 class="h1">Cégkereső</h1><p class="sub">Írd be egy cég adószámát vagy nevét. Megkeressük a cégadatokat, besoroljuk a tevékenységét, és megmutatjuk, mely közbeszerzések illenek hozzá, és hol lenne esélyes nyerni.</p></div></div>
+  <div class="stack">
+    <form class="finder-hero" id="finder-form" role="search" novalidate>
+      <label class="lbl" for="finder-q">Adószám vagy cégnév</label>
+      <div class="finder-form"><input type="search" id="finder-q" value="${esc(F.q)}" placeholder="Pl. 99990024-2-08 vagy Hajdú Gasztro" autocomplete="off" spellcheck="false"><button class="btn primary" type="submit">Keresés</button></div>
+      <div class="examples"><span>Próbáld ki:</span>${EXAMPLES.map(x => `<button class="ex" type="button" data-act="finder-example" data-q="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+    </form>
+    ${body}
+  </div>`;
+}
+function afterFinder() {
+  const F = state.finder;
+  if (F.status === 'notfound' && F.manual) { $('#mf-nuts').value = F.manual.nuts; $('#mf-sector').value = F.manual.sector; }
 }
 
 /* ---------- toast, tooltip, copy ---------- */
@@ -1553,6 +1947,14 @@ document.addEventListener('click', e => {
     case 'client-open': switchProfile(a.dataset.pid, false); setTab('tenders'); break;
     case 'client-edit': switchProfile(a.dataset.pid, false); setTab('profile'); break;
     case 'new-profile': newProfile(); break;
+    case 'goto-finder': setTab('finder'); $('#finder-q')?.focus(); break;
+    case 'goto-profile': setTab('profile'); break;
+    case 'finder-example': finderSearch(a.dataset.q); renderTab(); break;
+    case 'finder-pick': { const c = REGISTRY.find(x => x.tax === a.dataset.tax); if (c) { state.finder.q = c.name; activateCompany(c); renderTab(); } break; }
+    case 'finder-ai': aiClassify(); break;
+    case 'finder-create': createManual(); break;
+    case 'save-temp': saveTemp(); break;
+    case 'discard-temp': discardTemp(); break;
     case 'cpv-add': { const c = $('#cpv-new')?.value; if (c && !p.cpv.includes(c)) { p.cpv.push(c); saveProfiles(); renderTab(); } break; }
     case 'cpv-del': p.cpv.splice(Number(a.dataset.i), 1); saveProfiles(); renderTab(); break;
     case 'cert-add': { const v = ($('#cert-new')?.value || '').trim(); if (v) { p.certs.push(v); saveProfiles(); renderTab(); $('#cert-new')?.focus(); } break; }
@@ -1579,6 +1981,12 @@ document.addEventListener('click', e => {
     default: break;
   }
 });
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'finder-form') return;
+  e.preventDefault();
+  finderSearch($('#finder-q').value);
+  renderTab();
+});
 let qTimer;
 document.addEventListener('input', e => {
   const el = e.target, type = el.type;
@@ -1590,6 +1998,7 @@ document.addEventListener('input', e => {
     return;
   }
   if (el.id === 'draft-notes') { const t = curTender(); if (t) mem.notes[qkey(prof(), t)] = el.value; return; }
+  if (el.dataset.mf && state.finder.manual) { state.finder.manual[el.dataset.mf] = el.value; return; }
   if (el.dataset.rep === 'threshold') {
     report.threshold = Number(el.value); store.set(KEY.report, report);
     $('#rep-th-v').textContent = el.value; $('#mail').innerHTML = mailHtml();
@@ -1600,7 +2009,7 @@ document.addEventListener('input', e => {
     const key = el.dataset.pf;
     p[key] = key === 'revenue' || key === 'employees' ? Math.max(0, Number(el.value) || 0) : el.value;
     saveProfiles();
-    if (key === 'name') { const o = $(`#pick-profile option[value="${CSS.escape(p.id)}"]`); if (o) o.textContent = el.value || 'Névtelen cég'; }
+    if (key === 'name') { const o = $(`#pick-profile option[value="${CSS.escape(p.id)}"]`); if (o) o.textContent = (p.id === TEMP ? 'Keresett: ' : '') + (el.value || 'Névtelen cég'); }
     return;
   }
   if (el.dataset.staff != null && p.staff[Number(el.dataset.staff)]) {
@@ -1620,6 +2029,7 @@ document.addEventListener('change', e => {
   if (el.tagName !== 'SELECT' && el.type !== 'checkbox') return;
   if (el.dataset.filter) { state.f[el.dataset.filter] = el.type === 'checkbox' ? el.checked : el.value; paintList(); return; }
   if (el.dataset.rep) { report[el.dataset.rep] = el.type === 'checkbox' ? el.checked : el.value; store.set(KEY.report, report); $('#mail').innerHTML = mailHtml(); return; }
+  if (el.dataset.mf && state.finder.manual) { state.finder.manual[el.dataset.mf] = el.value; if (el.dataset.mf === 'sector') { state.finder.manual.aiCpv = null; state.finder.manual.ai = null; } return; }
   const p = prof();
   if (el.dataset.region) {
     const r = el.dataset.region;
