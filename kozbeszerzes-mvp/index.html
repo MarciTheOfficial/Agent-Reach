@@ -1,0 +1,1644 @@
+<title>Tenderpilóta</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky masthead (brand, profile switch, tabs) over one workspace; tenders use a filter rail + list,
+   and a tender opens in a right-hand drawer that becomes a full sheet on phones. Stamp-ink blue on cool paper. */
+:root{
+  --paper:#F1F3F7;
+  --card:#FFFFFF;
+  --sunk:#E9ECF3;
+  --ink:#151B2C;
+  --ink-2:#465068;
+  --ink-3:#5F6880;
+  --rule:#D6DBE6;
+  --accent:#2E3FA3;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E4E8FA;
+  --ok:#17693F; --ok-soft:#DDF1E5;
+  --warn:#8F5300; --warn-soft:#FAEDD6;
+  --bad:#B42318; --bad-soft:#FBE5E2;
+  --bar-muted:#8790A3;
+  --scrim:rgba(13,18,30,.42);
+  --shadow:0 1px 2px rgba(21,27,44,.06),0 12px 32px rgba(21,27,44,.14);
+  --f-display:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E121B; --card:#161B27; --sunk:#1E2434; --ink:#E8EBF3; --ink-2:#B0B7C9; --ink-3:#949CB2; --rule:#2B3246;
+    --accent:#A6B2FF; --accent-ink:#10142A; --accent-soft:#252C52;
+    --ok:#66CF96; --ok-soft:#16301F; --warn:#EDB25A; --warn-soft:#382A12; --bad:#F48E84; --bad-soft:#3D1D1A;
+    --bar-muted:#68718A; --scrim:rgba(0,0,0,.55); --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E121B; --card:#161B27; --sunk:#1E2434; --ink:#E8EBF3; --ink-2:#B0B7C9; --ink-3:#949CB2; --rule:#2B3246;
+  --accent:#A6B2FF; --accent-ink:#10142A; --accent-soft:#252C52;
+  --ok:#66CF96; --ok-soft:#16301F; --warn:#EDB25A; --warn-soft:#382A12; --bad:#F48E84; --bad-soft:#3D1D1A;
+  --bar-muted:#68718A; --scrim:rgba(0,0,0,.55); --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html.locked,html.locked body{overflow:hidden}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:30}
+h1,h2,h3,h4{margin:0;font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;line-height:1.2;text-wrap:balance}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+.mono{font-family:var(--f-mono);font-size:.92em}
+.muted{color:var(--ink-3)}
+.small{font-size:12.5px}
+.nowrap{white-space:nowrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:100%;max-width:1240px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* masthead */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--card);border-bottom:1px solid var(--rule)}
+.top-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding-block:12px 6px}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
+.brand-mark{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--accent);border:2px solid var(--accent);box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4.5px var(--accent);font-family:var(--f-display);font-weight:700;font-size:16px;transform:rotate(-9deg)}
+.brand-text{display:grid;line-height:1.15}
+.brand-name{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:-.015em}
+.brand-sub{font-size:12px;color:var(--ink-3)}
+.top-chips{display:flex;flex-wrap:wrap;gap:6px}
+.pick{display:flex;align-items:center;gap:8px;min-width:0}
+.pick label{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.pick select{width:auto;max-width:min(320px,70vw)}
+@media (max-width:640px){.pick{width:100%}.pick select{flex:1;max-width:none}}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-bottom:-1px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;appearance:none;background:none;border:0;border-bottom:2px solid transparent;padding:10px 12px 9px;font-weight:600;color:var(--ink-2);cursor:pointer;border-radius:6px 6px 0 0}
+.tab:hover{color:var(--ink);background:var(--sunk)}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.notice{font-size:12.5px;color:var(--ink-2);padding-block:14px 0}
+.notice b{color:var(--warn)}
+
+/* chips, controls */
+.chip{display:inline-flex;align-items:center;gap:5px;min-height:22px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;background:var(--sunk);color:var(--ink-2);white-space:nowrap}
+.chip.sample{background:var(--warn-soft);color:var(--warn)}
+.chip.ai-on{background:var(--ok-soft);color:var(--ok)}
+.chip.new{background:var(--accent-soft);color:var(--accent)}
+.chip.me{background:var(--accent);color:var(--accent-ink)}
+.chip.tiny{min-height:18px;font-size:11px;padding:0 6px}
+input[type=text],input[type=search],input[type=number],select,textarea{width:100%;min-height:38px;padding:7px 10px;background:var(--card);border:1px solid var(--rule);border-radius:8px;color:var(--ink)}
+select{min-width:0;max-width:100%}
+textarea{resize:vertical;line-height:1.45}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;margin:0;flex:none}
+.field{display:grid;gap:5px;min-width:0}
+.field>label,.lbl{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.check{display:flex;gap:8px;align-items:center;font-weight:500;cursor:pointer}
+.fs{border:0;padding:0;margin:0;display:grid;gap:8px}
+.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:7px 14px;border-radius:8px;border:1px solid var(--rule);background:var(--card);color:var(--ink);font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn.ghost:hover{background:var(--sunk)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:var(--card)}
+.btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.link{appearance:none;background:none;border:0;padding:0;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-align:left}
+.icon-btn{appearance:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--rule);background:var(--card);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;font-size:15px;flex:none}
+.icon-btn:hover{color:var(--ink);border-color:var(--ink-3)}
+
+/* tenders */
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:24px;align-items:start;padding-block:18px 56px}
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 112px)}
+.filters{background:var(--card);border:1px solid var(--rule);border-radius:12px}
+.filters>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.filters>summary::-webkit-details-marker{display:none}
+.filters>summary::after{content:"+";font-size:18px;line-height:1;color:var(--ink-3)}
+.filters[open]>summary::after{content:"−"}
+.fbody{display:grid;gap:14px;padding:0 14px 14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:14px}.rail{position:static}}
+.res-head{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;justify-content:space-between;margin-bottom:12px}
+.h1{font-size:26px}
+.sub{color:var(--ink-2);margin-top:4px;max-width:70ch}
+.inline{display:flex;align-items:center;gap:8px}
+.inline select{width:auto}
+.tlist{display:grid;gap:10px}
+.trow{appearance:none;width:100%;text-align:left;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:6px 16px;align-items:start;padding:14px 16px;background:var(--card);border:1px solid var(--rule);border-radius:12px;cursor:pointer;color:inherit}
+.trow:hover{border-color:color-mix(in srgb,var(--accent) 50%,var(--rule))}
+.fit{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px;border:2px solid currentColor;font-variant-numeric:tabular-nums;flex:none}
+.fit.hi{color:var(--ok);background:var(--ok-soft)}
+.fit.mid{color:var(--warn);background:var(--warn-soft)}
+.fit.lo{color:var(--ink-3);background:var(--sunk)}
+.tmain{display:grid;gap:4px;min-width:0}
+.ttitle{font-weight:700;font-size:15.5px;line-height:1.3;color:var(--ink)}
+.tmeta{color:var(--ink-2);font-size:13px}
+.tchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tside{display:grid;justify-items:end;text-align:right;min-width:120px}
+.tval{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.tlbl{font-size:11.5px;color:var(--ink-3)}
+.due{font-weight:700}
+.tside .due{margin-top:6px}
+.due.urgent{color:var(--bad)}
+.due.soon{color:var(--warn)}
+@media (max-width:640px){
+  .trow{grid-template-columns:44px minmax(0,1fr);padding:12px 14px}
+  .fit{width:40px;height:40px;font-size:14px}
+  .tside{grid-column:2;justify-items:start;text-align:left;display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;min-width:0}
+  .tside .due{margin-top:0}
+}
+.empty{padding:28px;border:1px solid var(--rule);border-radius:12px;text-align:center;color:var(--ink-2);background:var(--card)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(800px,100%);background:var(--paper);z-index:41;overflow-y:auto;overscroll-behavior:contain;box-shadow:var(--shadow);animation:slide .22s ease-out}
+@keyframes slide{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.drawer{animation:none}}
+.d-head{position:sticky;top:0;z-index:3;background:var(--card);border-bottom:1px solid var(--rule);display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:start;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:14px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.d-title{font-size:21px;margin-top:4px}
+.d-buyer{margin-top:6px;color:var(--ink-2)}
+.stamp{--c:var(--ink-3);width:82px;height:82px;border-radius:50%;display:grid;place-content:center;text-align:center;color:var(--c);border:2.5px solid var(--c);box-shadow:inset 0 0 0 4px var(--card),inset 0 0 0 5.5px var(--c);transform:rotate(-8deg);flex:none}
+.stamp.hi{--c:var(--ok)}
+.stamp.mid{--c:var(--warn)}
+.stamp b{font-family:var(--f-display);font-size:28px;line-height:1}
+.stamp span{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-top:3px}
+@media (max-width:560px){
+  .d-head{grid-template-columns:minmax(0,1fr) auto}
+  .d-title-wrap{grid-row:1/3}
+  .d-head .icon-btn{grid-row:1;grid-column:2}
+  .stamp{grid-row:2;grid-column:2;width:62px;height:62px;justify-self:end}
+  .stamp b{font-size:21px}
+  .stamp span{font-size:7.5px;letter-spacing:.12em}
+}
+.pad{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.d-actions{display:flex;flex-wrap:wrap;gap:8px;padding-block:14px 4px}
+.ai-off{font-size:13px;color:var(--ink-2);background:var(--sunk);border-radius:10px;padding:10px 12px;margin-top:8px}
+.dsec{padding-block:18px;border-bottom:1px solid var(--rule);display:grid;gap:10px}
+.dsec:last-child{border-bottom:0;padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
+.dsec>h3{font-size:16px}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin:0}
+@media (min-width:820px){.facts{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.fact{background:var(--card);padding:10px 12px;min-width:0}
+.fact dt{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.fact dd{margin:3px 0 0;font-weight:600}
+.bd{display:grid;gap:12px}
+.bd-row{display:grid;grid-template-columns:190px 120px 52px minmax(0,1fr);gap:4px 12px;align-items:center}
+.bd-l{font-weight:600}
+.bd-m{height:8px;border-radius:999px;background:var(--accent-soft);overflow:hidden}
+.bd-m span{display:block;height:100%;border-radius:999px;background:var(--accent)}
+.bd-s{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+.bd-w{color:var(--ink-2);font-size:13px}
+@media (max-width:760px){.bd-row{grid-template-columns:minmax(0,1fr) 90px 44px}.bd-w{grid-column:1/-1}}
+.verdict{font-weight:700;padding:10px 12px;border-radius:10px}
+.v-go{background:var(--ok-soft);color:var(--ok)}
+.v-cond{background:var(--warn-soft);color:var(--warn)}
+.v-cons,.v-no{background:var(--bad-soft);color:var(--bad)}
+.reqs{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.req{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;padding:10px 12px;background:var(--card);border:1px solid var(--rule);border-radius:10px}
+.req-code{font-weight:500;color:var(--accent);padding-top:1px}
+.req-body{display:grid;gap:6px;min-width:0}
+.req-auto,.req-ai{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:baseline;font-size:13px}
+.st{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.st.ok{background:var(--ok-soft);color:var(--ok)}
+.st.part{background:var(--warn-soft);color:var(--warn)}
+.st.fail{background:var(--bad-soft);color:var(--bad)}
+.st.check{background:var(--sunk);color:var(--ink-2)}
+.ai-tag{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--accent);border:1.5px solid var(--accent);border-radius:4px;padding:0 4px}
+.crit{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.crit li{display:grid;grid-template-columns:minmax(0,1fr) 140px 64px;gap:12px;align-items:center}
+.wbar{height:8px;border-radius:999px;background:var(--accent-soft);overflow:hidden}
+.wbar span{display:block;height:100%;background:var(--accent);border-radius:999px}
+.crit .w{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+@media (max-width:560px){.crit li{grid-template-columns:minmax(0,1fr) 64px}.crit .wbar{display:none}}
+.hist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.hist li{display:grid;gap:2px;padding-left:12px;border-left:2px solid var(--rule)}
+.single{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--bad);border:1.5px solid var(--bad);border-radius:4px;padding:0 5px;transform:rotate(-2deg);margin-left:4px;white-space:nowrap}
+
+/* AI output */
+.ai-out{display:grid;gap:8px;font-size:14px}
+.ai-out ul,.doc ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.thinking{display:flex;align-items:center;gap:10px;color:var(--ink-2)}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--accent-soft);border-top-color:var(--accent);animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
+.err{color:var(--bad);font-weight:600;font-size:13px}
+.ai-box{display:grid;gap:10px}
+.ai-verdict{display:grid;gap:6px;padding:12px 14px;border-radius:10px}
+.ai-verdict b{font-size:16px}
+.ai-verdict ul{margin:0;padding-left:18px}
+.doc{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:20px 22px;display:grid;gap:8px;line-height:1.6;min-width:0}
+.doc h3{font-size:19px}
+.doc h4{font-size:15.5px;margin-top:10px}
+.doc h5{font-size:14px;margin:6px 0 0;font-family:var(--f-body)}
+.doc em{color:var(--ink-3)}
+mark.todo{background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:0 3px;font-weight:600}
+.copy-fallback{min-height:160px;font-family:var(--f-mono);font-size:12.5px}
+
+/* pages */
+.page-head{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between;padding-block:18px 14px}
+.stack{display:grid;gap:16px;padding-bottom:56px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:820px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;display:grid;gap:2px;min-width:0}
+.stat .lbl{font-size:12.5px;color:var(--ink-2);font-weight:600}
+.stat .val{font-size:26px;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+.stat .sub{font-size:12px;color:var(--ink-3);margin:0}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;display:grid;gap:12px;min-width:0;align-content:start}
+.card-h{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:baseline}
+.card-h h2{font-size:17px}
+.mk-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-areas:"chart watch" "recent watch";gap:16px;align-items:start}
+.mk-chart{grid-area:chart}.mk-watch{grid-area:watch}.mk-recent{grid-area:recent}
+@media (max-width:980px){.mk-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"chart" "watch" "recent"}}
+.bars{display:grid;gap:2px}
+.bar-row{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:12px;align-items:center;min-height:36px;border-radius:6px;padding:0 4px;cursor:default}
+.bar-row:hover,.bar-row:focus-visible{background:var(--sunk)}
+.bar-label{font-size:13px;line-height:1.25;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;min-width:0}
+.bar-track{display:flex;align-items:center;gap:8px;height:28px;border-left:1px solid var(--rule);min-width:0}
+.bar{height:14px;border-radius:0 4px 4px 0;background:var(--bar-muted);flex:none}
+.bar.me{background:var(--accent)}
+.bar-val{font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (max-width:560px){.bar-row{grid-template-columns:minmax(0,1fr);gap:2px;padding-block:4px}}
+.tbl-wrap{overflow-x:auto;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700;background:var(--sunk)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.comp{display:grid;gap:8px;padding-top:14px;border-top:1px solid var(--rule)}
+.comp-h{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+.comp-h h3{font-size:16px}
+.kv{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--ink-2)}
+.kv b{color:var(--ink);font-variant-numeric:tabular-nums}
+.insight{font-size:13px;padding:8px 10px;border-radius:8px;background:var(--accent-soft);color:var(--ink)}
+details.more>summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13px}
+details.more[open]>summary{margin-bottom:8px}
+.add-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.add-row select,.add-row input{flex:1 1 220px;width:auto;min-width:0}
+
+/* report */
+.rep{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start;padding-bottom:56px}
+@media (max-width:900px){.rep{grid-template-columns:minmax(0,1fr)}}
+.mail{background:var(--card);border:1px solid var(--rule);border-radius:12px;overflow:hidden;max-width:680px;min-width:0}
+.mail-meta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:14px 18px;border-bottom:1px solid var(--rule);font-size:13px;background:var(--sunk);margin:0}
+.mail-meta dt{color:var(--ink-3);font-weight:600}
+.mail-meta dd{margin:0;min-width:0}
+.mail-body{padding:20px 22px;display:grid;gap:18px}
+.mail-body section{display:grid;gap:10px}
+.mail-body h3{font-size:15px;font-family:var(--f-body);font-weight:700;letter-spacing:0;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.mi{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px;align-items:start}
+.mi .fit{width:36px;height:36px;font-size:13px;border-width:1.5px}
+
+/* clients */
+.clients{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding-bottom:56px}
+@media (max-width:400px){.clients{grid-template-columns:minmax(0,1fr)}}
+.client h2{font-size:19px}
+.mini-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
+.mini-stats div{display:grid;min-width:0}
+.mini-stats b{font-size:18px}
+.mini-stats span{font-size:11.5px;color:var(--ink-3)}
+.toplist{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.toplist button{appearance:none;width:100%;text-align:left;background:none;border:0;padding:6px 8px;border-radius:8px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;cursor:pointer;color:inherit}
+.toplist button:hover{background:var(--sunk)}
+.pill{min-width:34px;text-align:center;font-weight:700;font-size:12.5px;border-radius:999px;padding:1px 6px;font-variant-numeric:tabular-nums}
+.pill.hi{background:var(--ok-soft);color:var(--ok)}
+.pill.mid{background:var(--warn-soft);color:var(--warn)}
+.pill.lo{background:var(--sunk);color:var(--ink-3)}
+
+/* profile form */
+.pform{display:grid;gap:16px;padding-bottom:56px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 16px}
+.fgrid .full{grid-column:1/-1}
+.chips-edit{display:flex;flex-wrap:wrap;gap:6px}
+.chip-x{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 10px;border-radius:999px;background:var(--sunk);font-size:13px;font-weight:600;max-width:100%}
+.chip-x button{appearance:none;border:0;background:var(--card);width:22px;height:22px;border-radius:50%;cursor:pointer;color:var(--ink-2);display:grid;place-items:center;font-size:11px;flex:none}
+.regions{display:flex;flex-wrap:wrap;gap:8px}
+.rchk{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--rule);border-radius:999px;background:var(--card);cursor:pointer;font-size:13px}
+.rchk:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.rows{display:grid;gap:8px}
+.erow{display:grid;gap:8px;align-items:end;padding:10px;border:1px solid var(--rule);border-radius:10px;background:var(--paper)}
+.erow.staff{grid-template-columns:minmax(0,2fr) 100px 120px auto}
+.erow.ref{grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) 100px 84px minmax(0,1.4fr) auto}
+@media (max-width:820px){.erow.staff,.erow.ref{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.erow .w2{grid-column:1/-1}}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--bad-soft);color:var(--bad);font-weight:600}
+
+/* overlays */
+.tip{position:fixed;z-index:60;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--rule);box-shadow:var(--shadow);border-radius:8px;padding:8px 10px;display:grid;gap:2px;font-size:12.5px;max-width:260px}
+.tip strong{font-size:15px}
+.tip .tip-sub{color:var(--ink-3)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-weight:600;font-size:13px;box-shadow:var(--shadow);max-width:calc(100vw - 32px)}
+.foot{padding-block:22px 30px;color:var(--ink-3);font-size:12.5px;border-top:1px solid var(--rule)}
+</style>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="wrap top-row">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">T</span>
+        <span class="brand-text"><span class="brand-name">Tenderpilóta</span><span class="brand-sub">Közbeszerzés-figyelő · MVP</span></span>
+      </div>
+      <span class="top-chips"><span class="chip sample">Példaadat</span><span class="chip" id="ai-chip">AI: ellenőrzés…</span></span>
+      <div class="pick"><label for="pick-profile">Cégprofil</label><select id="pick-profile"></select></div>
+    </div>
+    <div class="wrap">
+      <nav class="tabs" role="tablist" aria-label="Nézetek">
+        <button class="tab" role="tab" type="button" id="tab-tenders" data-tab="tenders">Tenderek</button>
+        <button class="tab" role="tab" type="button" id="tab-market" data-tab="market">Versenytársak</button>
+        <button class="tab" role="tab" type="button" id="tab-report" data-tab="report">Napi riport</button>
+        <button class="tab" role="tab" type="button" id="tab-profile" data-tab="profile">Cégprofil</button>
+        <button class="tab" role="tab" type="button" id="tab-clients" data-tab="clients">Ügyfelek</button>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap" id="view" role="tabpanel"></main>
+  <footer class="wrap foot">Tenderpilóta MVP. Minden cég, ajánlatkérő és kiírás kitalált példaadat; az egyezés valós szereplőkkel véletlen. A valódi adatforrás (TED, EKR) bekötése a következő lépés.</footer>
+</div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title" hidden></aside>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- helpers ---------- */
+const DAY = 864e5;
+const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
+const CUR_YEAR = TODAY.getFullYear();
+const offDate = n => new Date(TODAY.getTime() + n * DAY);
+const fmtDate = d => d.toLocaleDateString('hu-HU', { year: 'numeric', month: 'short', day: 'numeric' });
+const fmtShort = d => d.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
+const nf1 = new Intl.NumberFormat('hu-HU', { maximumFractionDigits: 1 });
+const nf2 = new Intl.NumberFormat('hu-HU', { maximumFractionDigits: 2 });
+const fmtM = v => (v >= 1000 ? nf2.format(v / 1000) + ' Mrd Ft' : nf1.format(v) + ' M Ft');
+const fmtPct = x => Math.round(x * 100) + '%';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const clone = o => JSON.parse(JSON.stringify(o));
+const daysLabel = n => (n <= 0 ? 'ma' : n === 1 ? 'holnap' : n + ' nap');
+const dueText = n => (n <= 0 ? 'ma' : n === 1 ? 'holnap' : n + ' nap múlva');
+const pubLabel = n => (n <= 0 ? 'ma' : n === 1 ? 'tegnap' : n + ' napja');
+const aAz = w => (/^[\s„"'(]*[aáeéiíoóöőuúüű]/i.test(String(w)) ? 'az' : 'a');
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
+};
+
+/* ---------- example data (fictional) ---------- */
+const REG = { HU110: 'Budapest', HU120: 'Pest', HU211: 'Fejér', HU212: 'Komárom-Esztergom', HU213: 'Veszprém', HU221: 'Győr-Moson-Sopron', HU222: 'Vas', HU223: 'Zala', HU231: 'Baranya', HU311: 'Borsod-Abaúj-Zemplén', HU321: 'Hajdú-Bihar', HU322: 'Jász-Nagykun-Szolnok', HU323: 'Szabolcs-Szatmár-Bereg', HU331: 'Bács-Kiskun', HU333: 'Csongrád-Csanád', ORSZ: 'Országos' };
+const DIV = { '45': 'Építőipar', '72': 'IT-szolgáltatás', '48': 'Szoftver', '30': 'Számítástechnikai eszköz', '55': 'Közétkeztetés', '90': 'Takarítás', '33': 'Orvostechnika', '15': 'Élelmiszer' };
+const CPV = {
+  '45233140-2': 'Útmunkák', '45233120-6': 'Útépítési munkák', '45233162-2': 'Kerékpárút építése', '45233161-5': 'Gyalogút építése',
+  '45223300-9': 'Parkoló építése', '45112000-5': 'Földkiemelési és földmozgatási munkák', '45232452-5': 'Vízelvezetési munkák',
+  '45221111-3': 'Közúti híd építése', '45321000-3': 'Hőszigetelési munkák', '45453000-7': 'Javítási és felújítási munkák',
+  '45210000-2': 'Magasépítési munkák', '72000000-5': 'Informatikai szolgáltatások', '72212000-4': 'Alkalmazási szoftverek programozása',
+  '72253000-3': 'Ügyfélszolgálati és támogatási szolgáltatások', '72267000-4': 'Szoftverkarbantartás és -javítás',
+  '72310000-1': 'Adatfeldolgozási szolgáltatások', '48000000-8': 'Szoftvercsomagok és információs rendszerek',
+  '30213000-5': 'Személyi számítógépek', '55520000-1': 'Közétkeztetési szolgáltatások', '55524000-9': 'Iskolai étkeztetés',
+  '55523100-3': 'Iskolai étkeztetési szolgáltatások', '55321000-6': 'Ételkészítési szolgáltatások', '55320000-9': 'Ételfelszolgálási szolgáltatások',
+  '55512000-2': 'Étkezdei szolgáltatások', '15800000-6': 'Különféle élelmiszerek', '90910000-9': 'Takarítási szolgáltatások',
+  '33141000-0': 'Egyszer használatos orvosi fogyóeszközök',
+};
+const cpvName = c => CPV[c] || 'egyéb CPV';
+
+const DEFAULT_PROFILES = [
+  {
+    id: 'raba', name: 'Rábaköz Útépítő Kft.', sector: 'Útépítés és mélyépítés', hq: 'Győr',
+    about: 'Közepes méretű útépítő és mélyépítő vállalkozás a Nyugat-Dunántúlon. Saját aszfaltkeverő teleppel és két finisher-lánccal dolgozik, főként önkormányzati és állami megrendelőknek.',
+    revenue: 2400, employees: 48,
+    cpv: ['45233140-2', '45233120-6', '45112000-5', '45232452-5'], regions: ['HU221', 'HU222', 'HU212'],
+    certs: ['ISO 9001', 'ISO 14001', 'Építőipari kivitelezői nyilvántartás'],
+    staff: [{ role: 'MV-KÉ felelős műszaki vezető', count: 2, years: 12 }, { role: 'MV-VZ felelős műszaki vezető', count: 1, years: 8 }, { role: 'Építésvezető', count: 4, years: 9 }],
+    references: [
+      { title: 'Bekötőút felújítása, 3,2 km', buyer: 'Szigetközi Önkormányzati Társulás', value: 640, year: 2025, cpv: '45233140-2' },
+      { title: 'Kerékpárút építése, 5,8 km', buyer: 'Lajta-menti Városgazdálkodási Kft.', value: 410, year: 2024, cpv: '45233162-2' },
+      { title: 'Csapadékvíz-elvezető rendszer rekonstrukciója', buyer: 'Pápai-medence Vízgazdálkodási Társulat', value: 220, year: 2023, cpv: '45232452-5' },
+    ],
+    strengths: 'Saját aszfaltkeverő telep Győrtől 25 km-re; 60 hónapos jótállást rutinszerűen vállalunk; kétfős MV-KÉ csapat; az elmúlt 3 évben minden projektet határidőre átadtunk.',
+    defaultWatch: ['Kisalföldi Aszfalt Zrt.', 'Pannon Útház Kft.', 'Hídfő-Bau Kft.'],
+  },
+  {
+    id: 'pixel', name: 'Pixelhíd Informatikai Zrt.', sector: 'Szoftverfejlesztés és IT-támogatás', hq: 'Budapest',
+    about: 'Közszféra-fókuszú szoftverfejlesztő cég: ügyfélportálok, integrációk és üzemeltetés. A 35 fős csapatból 22 fejlesztő.',
+    revenue: 1100, employees: 35,
+    cpv: ['72212000-4', '72000000-5', '72253000-3', '72267000-4'], regions: ['HU110', 'HU120', 'ORSZ'],
+    certs: ['ISO 9001', 'ISO/IEC 27001'],
+    staff: [{ role: 'Projektmenedzser (PMP)', count: 2, years: 9 }, { role: 'Szenior Java fejlesztő', count: 6, years: 7 }, { role: 'Informatikai biztonsági felelős (CISM)', count: 1, years: 6 }, { role: 'Elsőszintű támogató munkatárs', count: 4, years: 3 }],
+    references: [
+      { title: 'Online időpontfoglaló és ügyfélportál fejlesztése', buyer: 'Pest megyei Ügyfélszolgálati Központ', value: 180, year: 2025, cpv: '72212000-4' },
+      { title: 'Kórházi betegirányítási rendszer támogatása (24 hónap)', buyer: 'Duna-parti Városi Kórház', value: 96, year: 2024, cpv: '72253000-3' },
+      { title: 'Önkormányzati dokumentumkezelő rendszer migrációja', buyer: 'Pilisi Városok Társulása', value: 140, year: 2023, cpv: '72267000-4' },
+    ],
+    strengths: 'Akadálymentes (WCAG 2.1 AA) felületek; KAÜ- és e-Papír-integrációs tapasztalat; 4 órás hibaelhárítást vállalunk; Magyarországon üzemeltetett saját felhőinfrastruktúra.',
+    defaultWatch: ['Adatkapu Systems Kft.', 'Bitvár Szoftver Zrt.', 'Kódkert Informatika Kft.'],
+  },
+  {
+    id: 'napfeny', name: 'Napfény Menza Kft.', sector: 'Közétkeztetés', hq: 'Debrecen',
+    about: 'Regionális közétkeztető: saját főzőkonyha Debrecenben, napi 6 000 adag kapacitással. Óvodákat, iskolákat és szociális intézményeket lát el.',
+    revenue: 680, employees: 120,
+    cpv: ['55524000-9', '55523100-3', '55321000-6', '55520000-1'], regions: ['HU321', 'HU323', 'HU322'],
+    certs: ['HACCP', 'ISO 22000'],
+    staff: [{ role: 'Dietetikus', count: 2, years: 8 }, { role: 'Élelmezésvezető', count: 3, years: 11 }, { role: 'Szakács', count: 24, years: 6 }],
+    references: [
+      { title: 'Általános iskolák közétkeztetése, napi 2 400 adag', buyer: 'Hortobágy-vidéki Iskolaellátó Központ', value: 520, year: 2025, cpv: '55524000-9' },
+      { title: 'Bölcsődei diétás étkeztetés', buyer: 'Jászsági Önkormányzati Társulás', value: 72, year: 2026, cpv: '55520000-1' },
+      { title: 'Idősotthoni étkeztetés', buyer: 'Nyírségi Szociális Szolgáltató Központ', value: 130, year: 2025, cpv: '55520000-1' },
+    ],
+    strengths: '12 féle diétát főzünk; az alapanyagok 40%-a helyi termelőtől származik; saját, hűtött ételszállító flotta (9 jármű).',
+    defaultWatch: ['Alföldi Konyha Zrt.', 'Hajdú Gasztro Kft.', 'Tál-Ent Közétkeztetés Kft.'],
+  },
+];
+
+const TENDERS = [
+  { id: 'T01', ekr: 'EKR000731452026', title: 'Bekötőutak felújítása és csapadékvíz-elvezetés kiépítése három településrészen', buyer: 'Hanság-Rábaköz Önkormányzati Társulás', buyerType: 'Önkormányzati társulás', cpv: '45233140-2', cpvExtra: ['45232452-5'], nuts: 'HU221', value: 486, regime: 'Nemzeti', procedure: 'Nyílt eljárás', pubAgo: 1, dueIn: 19, dueTime: '10:00', duration: '8 hónap', lots: 'Nincs', funding: 'TOP Plusz (EU)', guarantee: 4,
+    summary: 'Három belterületi bekötőút (összesen 4,1 km) burkolatfelújítása, padkarendezés és kapubejárók átépítése, valamint 2,3 km nyílt és zárt csapadékvíz-elvezető rendszer kiépítése. A kivitelezés forgalom alatt, félpályás lezárással történik.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 5 évből legalább 1 db, legalább nettó 250 M Ft értékű útépítési vagy útfelújítási referencia.', type: 'ref', cpv: ['45233'], min: 250, years: 5 },
+      { code: 'M.2', text: 'Az elmúlt 5 évből legalább 1 db csapadékvíz-elvezetési referencia.', type: 'ref', cpv: ['4523245'], min: 0, years: 5 },
+      { code: 'M.3', text: '1 fő MV-KÉ jogosultsággal rendelkező felelős műszaki vezető.', type: 'staff', role: 'MV-KÉ', count: 1, years: 0 },
+      { code: 'M.4', text: 'Legalább 1 db aszfaltfinisher és 2 db 10 tonna feletti henger rendelkezésre állása.', type: 'manual' },
+    ],
+    criteria: [['Nettó ajánlati ár', 70], ['Jótállás időtartama (max. 60 hónap)', 15], ['Az MV-KÉ szakember többlettapasztalata (max. 36 hónap)', 15]] },
+  { id: 'T02', ekr: 'EKR000698212026', title: 'Kerékpárút építése országos közút mentén (6,4 km), két kis híd átépítésével', buyer: 'Nyugat-dunántúli Közlekedésfejlesztési Kft.', buyerType: 'Állami tulajdonú gazdasági társaság', cpv: '45233162-2', cpvExtra: ['45221111-3'], nuts: 'HU221', value: 1250, regime: 'Nemzeti', procedure: 'Nyílt eljárás', pubAgo: 4, dueIn: 26, dueTime: '11:00', duration: '14 hónap', lots: 'Nincs', funding: 'IKOP Plusz (EU)', guarantee: 10,
+    summary: '6,4 km önálló vonalvezetésű kerékpárút építése aszfaltburkolattal, 2 db kis híd (12 m és 18 m) átépítése, 3 csomóponti átvezetés kialakítása és közvilágítás telepítése.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 5 évből legalább 1 db, legalább nettó 500 M Ft értékű kerékpárút- vagy útépítési referencia.', type: 'ref', cpv: ['45233'], min: 500, years: 5 },
+      { code: 'M.2', text: 'Az elmúlt 5 évből legalább 1 db közúti híd építésére vagy felújítására vonatkozó referencia.', type: 'ref', cpv: ['452211'], min: 0, years: 5 },
+      { code: 'M.3', text: '1 fő MV-KÉ jogosultsággal rendelkező felelős műszaki vezető.', type: 'staff', role: 'MV-KÉ', count: 1, years: 0 },
+      { code: 'P.1', text: 'Az utolsó lezárt üzleti évben a nettó árbevétel legalább 900 M Ft.', type: 'revenue', min: 900 },
+    ],
+    criteria: [['Nettó ajánlati ár', 60], ['Jótállás időtartama (max. 60 hónap)', 20], ['Az MV-KÉ szakember többlettapasztalata (max. 36 hónap)', 20]] },
+  { id: 'T03', ekr: 'EKR000655902026', title: 'Ipari park belső úthálózatának bővítése, két körforgalommal', buyer: 'Kisalföldi Ipari Park Nonprofit Kft.', buyerType: 'Önkormányzati tulajdonú gazdasági társaság', cpv: '45233120-6', cpvExtra: ['45223300-9', '45112000-5'], nuts: 'HU221', value: 2950, regime: 'Uniós', procedure: 'Nyílt eljárás', pubAgo: 9, dueIn: 33, dueTime: '10:00', duration: '18 hónap', lots: '2 rész (út; parkoló)', funding: 'Saját forrás', guarantee: 25,
+    summary: '2,2 km új, 11,5 tonnás tengelyterhelésre méretezett belső út, 2 körforgalom és 4 200 m² parkoló építése, valamint a kapcsolódó közművek kiváltása. Az út és a parkoló részre külön is lehet ajánlatot tenni.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 5 évből legalább 1 db, legalább nettó 1 500 M Ft értékű útépítési referencia.', type: 'ref', cpv: ['45233'], min: 1500, years: 5 },
+      { code: 'M.2', text: '2 fő MV-KÉ jogosultsággal rendelkező szakember, egyenként legalább 5 év tapasztalattal.', type: 'staff', role: 'MV-KÉ', count: 2, years: 5 },
+      { code: 'P.1', text: 'Az utolsó lezárt üzleti évben a nettó árbevétel legalább 2 000 M Ft.', type: 'revenue', min: 2000 },
+    ],
+    criteria: [['Nettó ajánlati ár', 70], ['Jótállás időtartama (max. 72 hónap)', 15], ['Teljesítési határidő rövidítése (max. 60 nap)', 15]] },
+  { id: 'T04', ekr: 'EKR000744032026', title: 'Óvodaépület energetikai korszerűsítése (homlokzati hőszigetelés, nyílászárócsere)', buyer: 'Dunaparti Városi Önkormányzat', buyerType: 'Települési önkormányzat', cpv: '45321000-3', cpvExtra: ['45453000-7'], nuts: 'HU212', value: 210, regime: 'Nemzeti', procedure: 'Nyílt eljárás', pubAgo: 2, dueIn: 12, dueTime: '10:00', duration: '6 hónap', lots: 'Nincs', funding: 'TOP Plusz (EU)', guarantee: 2,
+    summary: '1 450 m² homlokzati hőszigetelés (16 cm), 64 db nyílászáró cseréje, lapostető-szigetelés és 20 kWp-os napelemes rendszer telepítése működő intézményben, a nyári szünetre ütemezett munkavégzéssel.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 5 évből legalább 1 db, legalább nettó 100 M Ft értékű épületenergetikai felújítási referencia.', type: 'ref', cpv: ['45321', '45453', '45261'], min: 100, years: 5 },
+      { code: 'M.2', text: '1 fő MV-É jogosultsággal rendelkező felelős műszaki vezető.', type: 'staff', role: 'MV-É', count: 1, years: 0 },
+    ],
+    criteria: [['Nettó ajánlati ár', 80], ['Jótállás időtartama (max. 60 hónap)', 20]] },
+  { id: 'T05', ekr: 'EKR000760112026', title: 'Belterületi utak kátyúzása és burkolatjavítása – 24 hónapos keretmegállapodás', buyer: 'Vasi Városgondnokság Nonprofit Kft.', buyerType: 'Önkormányzati tulajdonú gazdasági társaság', cpv: '45233140-2', cpvExtra: [], nuts: 'HU222', value: 340, regime: 'Nemzeti', procedure: 'Nyílt eljárás (keretmegállapodás)', pubAgo: 0, dueIn: 5, dueTime: '09:00', duration: '24 hónap', lots: 'Nincs', funding: 'Hazai forrás', guarantee: null,
+    summary: 'Eseti megrendelések alapján évente kb. 9 000 m² kátyúzás és 6 000 m² aszfaltburkolat-javítás a város belterületi útjain. A bejelentéstől számított 48 órán belüli kiszállás, télen hideg aszfalttal.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 5 évből legalább 1 db, legalább nettó 100 M Ft értékű útfelújítási vagy kátyúzási referencia.', type: 'ref', cpv: ['45233'], min: 100, years: 5 },
+      { code: 'M.2', text: 'Legalább 1 db aszfaltkeverő telep rendelkezésre állása a teljesítési helytől legfeljebb 50 km-re.', type: 'manual' },
+    ],
+    criteria: [['Nettó egységár (Ft/m²)', 80], ['Kiszállási idő vállalása (max. 48 óra)', 20]] },
+  { id: 'T06', ekr: 'EKR000688472026', title: 'Elektronikus ügyintézési portál továbbfejlesztése és 36 hónapos üzemeltetése', buyer: 'Fővárosi Ügyfélszolgálati Igazgatóság', buyerType: 'Költségvetési szerv', cpv: '72212000-4', cpvExtra: ['72267000-4', '72253000-3'], nuts: 'HU110', value: 780, regime: 'Uniós', procedure: 'Nyílt eljárás', pubAgo: 3, dueIn: 28, dueTime: '12:00', duration: '36 hónap', lots: 'Nincs', funding: 'DIMOP Plusz (EU)', guarantee: null,
+    summary: 'A meglévő ügyfélportál (havi kb. 140 ezer felhasználó) bővítése időpontfoglaló, online fizetési és KAÜ-azonosítási modullal, WCAG 2.1 AA szintű akadálymentesítéssel, majd 36 hónapos üzemeltetés 4 órás hibaelhárítási vállalással.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább nettó 200 M Ft értékű webes alkalmazásfejlesztési referencia.', type: 'ref', cpv: ['72212'], min: 200, years: 3 },
+      { code: 'M.2', text: '1 fő PMP vagy PRINCE2 minősítésű projektmenedzser, legalább 5 év tapasztalattal.', type: 'staff', role: 'PMP', count: 1, years: 5 },
+      { code: 'M.3', text: 'Legalább 4 fő Java fejlesztő, egyenként legalább 3 év tapasztalattal.', type: 'staff', role: 'Java', count: 4, years: 3 },
+      { code: 'M.4', text: 'ISO/IEC 27001 szerinti információbiztonsági tanúsítvány.', type: 'cert', cert: 'ISO 27001' },
+    ],
+    criteria: [['Nettó ajánlati ár', 50], ['Hibaelhárítási idő vállalása (max. 8 óra)', 25], ['A projektmenedzser többlettapasztalata (max. 60 hónap)', 25]] },
+  { id: 'T07', ekr: 'EKR000702582026', title: 'Kórházi informatikai rendszerek 24/7 helpdesk-támogatása', buyer: 'Tisza-parti Megyei Kórház', buyerType: 'Egészségügyi intézmény', cpv: '72253000-3', cpvExtra: ['72267000-4'], nuts: 'HU333', value: 240, regime: 'Uniós', procedure: 'Nyílt eljárás', pubAgo: 6, dueIn: 15, dueTime: '10:00', duration: '24 hónap', lots: 'Nincs', funding: 'Hazai forrás', guarantee: null,
+    summary: 'Első- és másodszintű felhasználói támogatás 1 900 munkaállomásra és 14 klinikai alkalmazásra, éjjel-nappal elérhető ügyelettel. Kritikus hibánál 1 órás reakció- és 4 órás megoldási idő.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább nettó 80 M Ft értékű informatikai támogatási referencia.', type: 'ref', cpv: ['72253', '72267'], min: 80, years: 3 },
+      { code: 'M.2', text: 'Legalább 3 fő, 24/7 ügyeletbe beosztható, magyar nyelvű elsőszintű támogató munkatárs.', type: 'manual' },
+      { code: 'M.3', text: 'ISO 9001 szerinti minőségirányítási tanúsítvány.', type: 'cert', cert: 'ISO 9001' },
+    ],
+    criteria: [['Nettó ajánlati ár', 60], ['Kritikus hiba megoldási ideje (max. 4 óra)', 40]] },
+  { id: 'T08', ekr: 'EKR000749302026', title: 'Önkormányzati iratkezelő rendszer bevezetése adatmigrációval', buyer: 'Zalai Városok Közös Hivatala', buyerType: 'Közös önkormányzati hivatal', cpv: '48000000-8', cpvExtra: ['72267000-4'], nuts: 'HU223', value: 64, regime: 'Nemzeti', procedure: 'Nyílt eljárás', pubAgo: 1, dueIn: 9, dueTime: '10:00', duration: '6 hónap + 12 hónap támogatás', lots: 'Nincs', funding: 'Saját forrás', guarantee: null,
+    summary: 'Tanúsított iratkezelő szoftver 120 felhasználóra, a meglévő rendszer 15 évnyi adatának migrációja, a munkatársak oktatása és 12 hónapos jogkövetési támogatás.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább nettó 40 M Ft értékű szoftverbevezetési vagy migrációs referencia.', type: 'ref', cpv: ['72', '48'], min: 40, years: 3 },
+      { code: 'M.2', text: 'Az iratkezelésre vonatkozó jogszabályi követelményeknek megfelelő, tanúsított iratkezelő szoftver.', type: 'manual' },
+    ],
+    criteria: [['Nettó ajánlati ár', 70], ['Támogatási időszak meghosszabbítása (max. 24 hónap)', 30]] },
+  { id: 'T09', ekr: 'EKR000721662026', title: 'Iskolai laptopok beszerzése és telepítése (1 200 db)', buyer: 'Közép-dunántúli Tankerületi Ellátó', buyerType: 'Költségvetési szerv', cpv: '30213000-5', cpvExtra: [], nuts: 'HU211', value: 290, regime: 'Uniós', procedure: 'Nyílt eljárás', pubAgo: 5, dueIn: 21, dueTime: '10:00', duration: '90 nap', lots: '3 rész (tankerületenként)', funding: 'RRF (EU)', guarantee: null,
+    summary: '1 200 db tanulói laptop szállítása előtelepített operációs rendszerrel és oktatási szoftvercsomaggal, eszközkezelő rendszerbe léptetéssel és 36 hónapos helyszíni garanciával.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább 600 db számítógép szállítására vonatkozó referencia.', type: 'ref', cpv: ['302'], min: 0, years: 3 },
+      { code: 'M.2', text: 'A gyártó által kiadott forgalmazói (partner) nyilatkozat.', type: 'manual' },
+    ],
+    criteria: [['Nettó ajánlati ár', 70], ['Helyszíni garancia meghosszabbítása (max. 24 hónap)', 30]] },
+  { id: 'T10', ekr: 'EKR000713572026', title: 'Óvodai, iskolai és szociális közétkeztetés 2027–2029', buyer: 'Hajdúsági Települések Gazdasági Ellátó Szervezete', buyerType: 'Költségvetési szerv', cpv: '55524000-9', cpvExtra: ['55523100-3', '55321000-6'], nuts: 'HU321', value: 1480, regime: 'Uniós', procedure: 'Nyílt eljárás', pubAgo: 2, dueIn: 31, dueTime: '10:00', duration: '36 hónap', lots: 'Nincs', funding: 'Hazai forrás', guarantee: null,
+    summary: 'Napi átlag 3 100 adag (óvoda, általános iskola, szociális étkeztetés) előállítása és kiszállítása 7 intézménybe, ebből kb. 8% diétás étrend. A tálalókonyhák üzemeltetése is a nyertes ajánlattevő feladata.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább nettó 400 M Ft értékű közétkeztetési referencia.', type: 'ref', cpv: ['555'], min: 400, years: 3 },
+      { code: 'M.2', text: 'Legalább 1 fő dietetikus.', type: 'staff', role: 'Dietetikus', count: 1, years: 0 },
+      { code: 'M.3', text: 'HACCP-rendszer működtetése.', type: 'cert', cert: 'HACCP' },
+      { code: 'M.4', text: 'Legalább napi 3 500 adag kapacitású főzőkonyha a teljesítési helytől legfeljebb 40 km-re.', type: 'manual' },
+      { code: 'P.1', text: 'Az utolsó lezárt üzleti évben a nettó árbevétel legalább 900 M Ft.', type: 'revenue', min: 900 },
+    ],
+    criteria: [['Nettó ajánlati ár (Ft/adag)', 50], ['Helyi termelőtől beszerzett alapanyag aránya (%)', 25], ['Heti diétás menük száma', 25]] },
+  { id: 'T11', ekr: 'EKR000694082026', title: 'Kórházi betegélelmezés nyersanyag-beszerzéssel', buyer: 'Szamos-menti Kórház', buyerType: 'Egészségügyi intézmény', cpv: '55320000-9', cpvExtra: ['15800000-6'], nuts: 'HU323', value: 620, regime: 'Uniós', procedure: 'Nyílt eljárás', pubAgo: 8, dueIn: 17, dueTime: '10:00', duration: '24 hónap', lots: 'Nincs', funding: 'Hazai forrás', guarantee: null,
+    summary: 'Napi háromszori étkezés egy 410 ágyas kórház betegei részére, 14 diétatípussal, a kórházi tálalókonyhára szállítva. A nyersanyag beszerzése és a főzés a nyertes feladata.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, egészségügyi intézmény részére nyújtott, legalább nettó 300 M Ft értékű étkeztetési referencia.', type: 'ref', cpv: ['555', '553'], min: 300, years: 3, kw: 'kórház' },
+      { code: 'M.2', text: 'ISO 22000 szerinti élelmiszerbiztonsági tanúsítvány.', type: 'cert', cert: 'ISO 22000' },
+      { code: 'M.3', text: 'Legalább 2 fő dietetikus.', type: 'staff', role: 'Dietetikus', count: 2, years: 0 },
+    ],
+    criteria: [['Nettó ajánlati ár (Ft/nap/fő)', 60], ['Diétatípusok száma (14 felett)', 20], ['A konyhavezető kórházi többlettapasztalata', 20]] },
+  { id: 'T12', ekr: 'EKR000761942026', title: 'Nyári szünidei gyermekétkeztetés 2027', buyer: 'Bódva-völgyi Szociális Szolgáltató Központ', buyerType: 'Költségvetési szerv', cpv: '55520000-1', cpvExtra: [], nuts: 'HU311', value: 46, regime: 'Nemzeti', procedure: 'Nyílt eljárás', pubAgo: 0, dueIn: 8, dueTime: '10:00', duration: '2027. jún. 15. – aug. 31.', lots: 'Nincs', funding: 'Hazai forrás', guarantee: null,
+    summary: 'A nyári szünidőben napi egyszeri meleg ebéd kb. 650 rászoruló gyermek részére, 9 kiosztóhelyre szállítva, ételhordós csomagolásban.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább nettó 20 M Ft értékű közétkeztetési referencia.', type: 'ref', cpv: ['555'], min: 20, years: 3 },
+      { code: 'M.2', text: 'HACCP-rendszer működtetése.', type: 'cert', cert: 'HACCP' },
+    ],
+    criteria: [['Nettó ajánlati ár (Ft/adag)', 70], ['Helyi termelőtől beszerzett alapanyag aránya (%)', 30]] },
+  { id: 'T13', ekr: 'EKR000676352026', title: 'Bölcsődei és óvodai étkeztetés – jászsági mikrotérség', buyer: 'Jászsági Önkormányzati Társulás', buyerType: 'Önkormányzati társulás', cpv: '55523100-3', cpvExtra: ['55520000-1'], nuts: 'HU322', value: 310, regime: 'Uniós', procedure: 'Nyílt eljárás', pubAgo: 12, dueIn: 3, dueTime: '10:00', duration: '24 hónap', lots: '2 rész (bölcsőde; óvoda)', funding: 'Hazai forrás', guarantee: null,
+    summary: 'Hat település bölcsődéiben és óvodáiban napi kb. 780 adag (reggeli, tízórai, ebéd, uzsonna) biztosítása korcsoportos tápanyagnormák szerint, az ételallergiás gyermekek külön ellátásával.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább nettó 100 M Ft értékű gyermekétkeztetési referencia.', type: 'ref', cpv: ['555'], min: 100, years: 3 },
+      { code: 'M.2', text: 'Legalább 1 fő dietetikus.', type: 'staff', role: 'Dietetikus', count: 1, years: 0 },
+      { code: 'M.3', text: 'HACCP-rendszer működtetése.', type: 'cert', cert: 'HACCP' },
+      { code: 'M.4', text: 'Legalább 2 db, 3,5 tonna feletti, hűtött ételszállító gépjármű.', type: 'manual' },
+    ],
+    criteria: [['Nettó ajánlati ár (Ft/adag)', 60], ['Helyi termelőtől beszerzett alapanyag aránya (%)', 20], ['Ételallergiás menük száma', 20]] },
+  { id: 'T14', ekr: 'EKR000735202026', title: 'Irodaház takarítása és higiéniai szolgáltatás (3 év)', buyer: 'Duna Irodaház Üzemeltető Zrt.', buyerType: 'Állami tulajdonú gazdasági társaság', cpv: '90910000-9', cpvExtra: [], nuts: 'HU110', value: 155, regime: 'Uniós', procedure: 'Nyílt eljárás', pubAgo: 3, dueIn: 18, dueTime: '10:00', duration: '36 hónap', lots: 'Nincs', funding: 'Saját forrás', guarantee: null,
+    summary: '18 400 m² irodaterület napi takarítása, negyedéves ablaktisztítás, a mosdók higiéniai ellátása és szelektív hulladékgyűjtés, munkanapokon 6 és 20 óra között.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább 10 000 m² takarítására vonatkozó referencia.', type: 'ref', cpv: ['909'], min: 0, years: 3 },
+    ],
+    criteria: [['Nettó ajánlati ár', 70], ['A helyszíni felügyelő többlettapasztalata', 30]] },
+  { id: 'T15', ekr: 'EKR000717682026', title: 'Egyszer használatos orvosi fogyóeszközök beszerzése – keretmegállapodás', buyer: 'Észak-magyarországi Egészségügyi Beszerzési Társulás', buyerType: 'Egészségügyi intézmények társulása', cpv: '33141000-0', cpvExtra: [], nuts: 'HU311', value: 890, regime: 'Uniós', procedure: 'Nyílt eljárás (keretmegállapodás)', pubAgo: 7, dueIn: 24, dueTime: '10:00', duration: '24 hónap', lots: '12 rész', funding: 'Hazai forrás', guarantee: null,
+    summary: 'Fecskendők, kanülök, kötszerek és vizsgálókesztyűk szállítása 5 kórház részére, termékcsoportonként 12 részre bontva, 48 órás szállítási határidővel.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább nettó 100 M Ft értékű orvostechnikai eszköz-szállítási referencia.', type: 'ref', cpv: ['331'], min: 100, years: 3 },
+      { code: 'M.2', text: 'Érvényes orvostechnikai forgalmazói nyilvántartásba vétel.', type: 'manual' },
+    ],
+    criteria: [['Nettó ajánlati ár', 80], ['Szállítási határidő (max. 48 óra)', 20]] },
+  { id: 'T16', ekr: 'EKR000752862026', title: 'Községi utak és járdák felújítása (1,2 km) a Magyar Falu Program keretében', buyer: 'Göcseji Községek Társulása', buyerType: 'Önkormányzati társulás', cpv: '45233140-2', cpvExtra: ['45233161-5'], nuts: 'HU223', value: 128, regime: 'Nemzeti', procedure: 'Nyílt eljárás', pubAgo: 1, dueIn: 14, dueTime: '10:00', duration: '5 hónap', lots: 'Nincs', funding: 'Magyar Falu Program (hazai)', guarantee: null,
+    summary: 'Négy településen összesen 1,2 km önkormányzati út aszfaltburkolatának felújítása és 850 m járda átépítése térkőburkolattal, a csapadékvíz-elvezető árkok tisztításával.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 5 évből legalább 1 db, legalább nettó 60 M Ft értékű útfelújítási referencia.', type: 'ref', cpv: ['45233'], min: 60, years: 5 },
+      { code: 'M.2', text: '1 fő MV-KÉ jogosultsággal rendelkező felelős műszaki vezető.', type: 'staff', role: 'MV-KÉ', count: 1, years: 0 },
+    ],
+    criteria: [['Nettó ajánlati ár', 75], ['Jótállás időtartama (max. 60 hónap)', 25]] },
+  { id: 'T17', ekr: 'EKR000709142026', title: 'Adattárház és vezetői riportrendszer fejlesztése', buyer: 'Kisalföldi Víziközmű Zrt.', buyerType: 'Önkormányzati tulajdonú gazdasági társaság', cpv: '72310000-1', cpvExtra: ['72212000-4'], nuts: 'HU221', value: 120, regime: 'Nemzeti', procedure: 'Nyílt eljárás', pubAgo: 10, dueIn: 11, dueTime: '10:00', duration: '10 hónap', lots: 'Nincs', funding: 'Saját forrás', guarantee: null,
+    summary: 'A számlázási, hibaelhárítási és vízmérőadatok egységes adattárházba szervezése, 25 vezetői riport és egy önkiszolgáló elemzőfelület kialakítása havi adatfrissítéssel.',
+    reqs: [
+      { code: 'M.1', text: 'Az elmúlt 3 évből legalább 1 db, legalább nettó 50 M Ft értékű adattárház- vagy riportfejlesztési referencia.', type: 'ref', cpv: ['7231', '72212'], min: 50, years: 3 },
+      { code: 'M.2', text: '1 fő, legalább 5 év tapasztalattal rendelkező adatbázis-szakértő.', type: 'staff', role: 'adatbázis', count: 1, years: 5 },
+    ],
+    criteria: [['Nettó ajánlati ár', 60], ['Garanciális időszak (max. 36 hónap)', 20], ['Az adatbázis-szakértő többlettapasztalata (max. 60 hónap)', 20]] },
+];
+TENDERS.forEach(t => { t.pub = offDate(-t.pubAgo); t.due = offDate(t.dueIn); });
+
+const AWARDS = [
+  ['A01', 'Belterületi utak felújítása – II. ütem', 'Hanság-Rábaköz Önkormányzati Társulás', 'Kisalföldi Aszfalt Zrt.', 512, 540, 2, '45233140-2', 'HU221', 40],
+  ['A02', 'Ipari út burkolatcseréje', 'Kisalföldi Ipari Park Nonprofit Kft.', 'Kisalföldi Aszfalt Zrt.', 1340, 1350, 1, '45233120-6', 'HU221', 95],
+  ['A03', 'Kerékpárút-hálózat fejlesztése (4,1 km)', 'Nyugat-dunántúli Közlekedésfejlesztési Kft.', 'Pannon Útház Kft.', 690, 760, 4, '45233162-2', 'HU221', 130],
+  ['A04', 'Patakhíd átépítése', 'Vasi Városgondnokság Nonprofit Kft.', 'Hídfő-Bau Kft.', 260, 255, 1, '45221111-3', 'HU222', 58],
+  ['A05', 'Járdafelújítási program', 'Kemenesvidéki Községek Társulása', 'Rábaköz Útépítő Kft.', 96, 110, 3, '45233161-5', 'HU222', 75],
+  ['A06', 'Csapadékvíz-elvezetés rekonstrukciója', 'Dunaparti Városi Önkormányzat', 'Szigetköz Mélyépítő Kft.', 148, 160, 3, '45232452-5', 'HU212', 150],
+  ['A07', 'Bekötőút építése logisztikai központhoz', 'Kisalföldi Ipari Park Nonprofit Kft.', 'Kisalföldi Aszfalt Zrt.', 880, 870, 1, '45233120-6', 'HU221', 210],
+  ['A08', 'Kátyúzási keretszerződés', 'Vasi Városgondnokság Nonprofit Kft.', 'Pannon Útház Kft.', 180, 200, 2, '45233140-2', 'HU222', 260],
+  ['A09', 'Gyalogos-kerékpáros híd felújítása', 'Nyugat-dunántúli Közlekedésfejlesztési Kft.', 'Hídfő-Bau Kft.', 410, 430, 2, '45221111-3', 'HU221', 300],
+  ['A10', 'Településközponti utak felújítása', 'Hanság-Rábaköz Önkormányzati Társulás', 'Rábaköz Útépítő Kft.', 318, 350, 3, '45233140-2', 'HU221', 340],
+  ['A11', 'Parkolóbővítés (3 200 m²)', 'Dunaparti Városi Önkormányzat', 'Kisalföldi Aszfalt Zrt.', 225, 230, 1, '45223300-9', 'HU212', 380],
+  ['A12', 'Mezőgazdasági utak stabilizálása', 'Kemenesvidéki Községek Társulása', 'Szigetköz Mélyépítő Kft.', 74, 90, 4, '45233140-2', 'HU222', 420],
+  ['B01', 'Ügyfélportál időpontfoglaló modul', 'Fővárosi Ügyfélszolgálati Igazgatóság', 'Adatkapu Systems Kft.', 210, 220, 2, '72212000-4', 'HU110', 35],
+  ['B02', 'Kórházi informatikai támogatás (24 hónap)', 'Tisza-parti Megyei Kórház', 'Bitvár Szoftver Zrt.', 188, 190, 1, '72253000-3', 'HU333', 70],
+  ['B03', 'Iratkezelő rendszer bevezetése', 'Zalai Városok Közös Hivatala', 'Kódkert Informatika Kft.', 52, 60, 3, '48000000-8', 'HU223', 110],
+  ['B04', 'Adatplatform és riportkészítés', 'Kisalföldi Víziközmű Zrt.', 'Pixelhíd Informatikai Zrt.', 88, 95, 3, '72310000-1', 'HU221', 140],
+  ['B05', 'Lakossági bejelentő mobilalkalmazás', 'Fővárosi Ügyfélszolgálati Igazgatóság', 'Adatkapu Systems Kft.', 145, 150, 1, '72212000-4', 'HU110', 190],
+  ['B06', 'Szerverpark-üzemeltetés (36 hónap)', 'Duna Irodaház Üzemeltető Zrt.', 'Felhőpont Kft.', 330, 360, 2, '72000000-5', 'HU110', 220],
+  ['B07', 'Webes felületek akadálymentesítése', 'Közép-dunántúli Tankerületi Ellátó', 'Pixelhíd Informatikai Zrt.', 38, 45, 4, '72212000-4', 'HU211', 250],
+  ['B08', 'Elektronikus számlázó modul', 'Észak-magyarországi Egészségügyi Beszerzési Társulás', 'Bitvár Szoftver Zrt.', 120, 118, 1, '72212000-4', 'HU311', 280],
+  ['B09', 'Helpdesk-szolgáltatás', 'Zalai Városok Közös Hivatala', 'Kódkert Informatika Kft.', 44, 50, 2, '72253000-3', 'HU223', 310],
+  ['B10', 'Ügyféltájékoztató kioszkok szoftvere', 'Fővárosi Ügyfélszolgálati Igazgatóság', 'Adatkapu Systems Kft.', 96, 100, 1, '72212000-4', 'HU110', 360],
+  ['B11', 'Laptopbeszerzés pedagógusoknak', 'Közép-dunántúli Tankerületi Ellátó', 'Felhőpont Kft.', 260, 300, 5, '30213000-5', 'HU211', 170],
+  ['B12', 'Integrációs réteg (KAÜ, e-Papír)', 'Tisza-parti Megyei Kórház', 'Pixelhíd Informatikai Zrt.', 64, 70, 2, '72212000-4', 'HU333', 400],
+  ['C01', 'Iskolai közétkeztetés 2026–2027', 'Hajdúsági Települések Gazdasági Ellátó Szervezete', 'Alföldi Konyha Zrt.', 980, 1000, 1, '55524000-9', 'HU321', 45],
+  ['C02', 'Szociális étkeztetés kiszállítással', 'Nyírségi Szociális Szolgáltató Központ', 'Hajdú Gasztro Kft.', 160, 175, 2, '55520000-1', 'HU323', 80],
+  ['C03', 'Kórházi betegélelmezés', 'Szamos-menti Kórház', 'Tál-Ent Közétkeztetés Kft.', 540, 560, 2, '55320000-9', 'HU323', 100],
+  ['C04', 'Bölcsődei étkeztetés', 'Jászsági Önkormányzati Társulás', 'Napfény Menza Kft.', 72, 80, 3, '55520000-1', 'HU322', 120],
+  ['C05', 'Nyári napközis étkeztetés', 'Nyírségi Szociális Szolgáltató Központ', 'Ízvilág Catering Kft.', 38, 42, 4, '55520000-1', 'HU323', 160],
+  ['C06', 'Óvodai étkeztetés – keleti körzet', 'Hajdúsági Települések Gazdasági Ellátó Szervezete', 'Alföldi Konyha Zrt.', 410, 400, 1, '55523100-3', 'HU321', 200],
+  ['C07', 'Kollégiumi menza üzemeltetése', 'Tiszántúli Egyetemi Szolgáltató Kft.', 'Tál-Ent Közétkeztetés Kft.', 290, 300, 2, '55512000-2', 'HU321', 230],
+  ['C08', 'Iskolai étkeztetés – Jászság', 'Jászsági Önkormányzati Társulás', 'Hajdú Gasztro Kft.', 270, 285, 2, '55524000-9', 'HU322', 270],
+  ['C09', 'Idősotthoni étkeztetés', 'Nyírségi Szociális Szolgáltató Központ', 'Napfény Menza Kft.', 130, 140, 3, '55520000-1', 'HU323', 300],
+  ['C10', 'Rendezvényi catering keretszerződés', 'Tiszántúli Egyetemi Szolgáltató Kft.', 'Ízvilág Catering Kft.', 48, 50, 3, '55520000-1', 'HU321', 330],
+  ['C11', 'Kórházi diétás konyha üzemeltetése', 'Szamos-menti Kórház', 'Tál-Ent Közétkeztetés Kft.', 220, 220, 1, '55321000-6', 'HU323', 370],
+  ['C12', 'Gyermekétkeztetés öt településen', 'Hajdúsági Települések Gazdasági Ellátó Szervezete', 'Alföldi Konyha Zrt.', 350, 360, 1, '55524000-9', 'HU321', 450],
+].map(([id, title, buyer, winner, value, est, bids, cpv, nuts, daysAgo]) => ({ id, title, buyer, winner, value, est, bids, cpv, nuts, daysAgo, date: offDate(-daysAgo) }));
+
+/* ---------- state ---------- */
+const KEY = { profiles: 'tp1.profiles', watch: 'tp1.watch', report: 'tp1.report', drafts: 'tp1.drafts', ui: 'tp1.ui' };
+const TABS = ['tenders', 'market', 'report', 'profile', 'clients'];
+
+function normProfile(p) {
+  const arr = v => (Array.isArray(v) ? v : []);
+  return {
+    id: String(p.id), name: String(p.name || 'Névtelen cég'), sector: String(p.sector || ''), hq: String(p.hq || ''),
+    about: String(p.about || ''), strengths: String(p.strengths || ''),
+    revenue: Math.max(0, Number(p.revenue) || 0), employees: Math.max(0, Number(p.employees) || 0),
+    cpv: arr(p.cpv).map(String), regions: arr(p.regions).map(String), certs: arr(p.certs).map(String),
+    staff: arr(p.staff).map(s => ({ role: String(s.role || ''), count: Number(s.count) || 0, years: Number(s.years) || 0 })),
+    references: arr(p.references).map(r => ({ title: String(r.title || ''), buyer: String(r.buyer || ''), value: Number(r.value) || 0, year: Number(r.year) || CUR_YEAR, cpv: String(r.cpv || '') })),
+    defaultWatch: arr(p.defaultWatch).map(String), custom: !!p.custom,
+  };
+}
+let profiles = (() => {
+  const saved = store.get(KEY.profiles, null);
+  if (Array.isArray(saved)) {
+    const ok = saved.filter(p => p && typeof p.id === 'string').map(normProfile);
+    if (ok.length) return ok;
+  }
+  return clone(DEFAULT_PROFILES).map(normProfile);
+})();
+const uiSaved = store.get(KEY.ui, {}) || {};
+const state = {
+  pid: profiles.some(p => p.id === uiSaved.pid) ? uiSaved.pid : profiles[0].id,
+  tab: TABS.includes(uiSaved.tab) ? uiSaved.tab : 'tenders',
+  f: { q: '', onlyFit: true, div: '', region: '', regime: '', due: '', min: '', max: '', sort: 'fit' },
+  open: null, opener: null, confirm: null,
+};
+let watch = store.get(KEY.watch, {}); if (!watch || typeof watch !== 'object' || Array.isArray(watch)) watch = {};
+const report = Object.assign({ threshold: 60, freq: 'daily', sNew: true, sDue: true, sComp: true }, store.get(KEY.report, {}) || {});
+let drafts = store.get(KEY.drafts, {}); if (!drafts || typeof drafts !== 'object' || Array.isArray(drafts)) drafts = {};
+const prof = () => profiles.find(p => p.id === state.pid) || profiles[0];
+const curTender = () => TENDERS.find(t => t.id === state.open);
+const saveUi = () => store.set(KEY.ui, { pid: state.pid, tab: state.tab });
+let saveTimer;
+const saveProfiles = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => store.set(KEY.profiles, profiles), 250); };
+const getWatch = p => (Array.isArray(watch[p.id]) ? watch[p.id] : p.defaultWatch || []);
+const setWatch = (p, list) => { watch[p.id] = list; store.set(KEY.watch, watch); };
+
+/* ---------- scoring ---------- */
+const TIER = { hi: 'erős illeszkedés', mid: 'részleges illeszkedés', lo: 'gyenge illeszkedés' };
+const ST_LABEL = { ok: '✓ Megfelel', part: '◐ Részben', fail: '✕ Nem felel meg', check: '? Ellenőrizendő' };
+const stChip = st => `<span class="st ${st}">${ST_LABEL[st] || ST_LABEL.check}</span>`;
+const digits = c => String(c).replace(/[^0-9]/g, '');
+
+function cpvScore(p, t) {
+  if (!p.cpv.length) return { score: 0, max: 40, why: 'A profilban még nincs CPV-kód' };
+  let best = 0, why = 'Nincs egyezés a profil tevékenységeivel';
+  const levels = [[8, 40, 'Pontos CPV-egyezés'], [5, 32, 'Azonos CPV-kategória'], [4, 26, 'Azonos CPV-osztály'], [3, 18, 'Azonos CPV-csoport'], [2, 8, 'Csak az ágazat egyezik']];
+  for (const c of [t.cpv, ...t.cpvExtra]) {
+    for (const pc of p.cpv) {
+      for (const [n, s, label] of levels) {
+        if (digits(c).slice(0, n) === digits(pc).slice(0, n)) {
+          if (s > best) { best = s; why = `${label} (${c} ${cpvName(c)})`; }
+          break;
+        }
+      }
+    }
+  }
+  return { score: best, max: 40, why };
+}
+function regionScore(p, t) {
+  if (p.regions.includes(t.nuts)) return { score: 20, max: 20, why: `A célterületen belül: ${REG[t.nuts]}` };
+  if (p.regions.includes('ORSZ')) return { score: 14, max: 20, why: `Országos működés, a helyszín vállalható: ${REG[t.nuts]}` };
+  if (p.regions.some(r => r.slice(0, 4) === t.nuts.slice(0, 4))) return { score: 12, max: 20, why: `Szomszédos megye ugyanabban a régióban: ${REG[t.nuts]}` };
+  return { score: 0, max: 20, why: p.regions.length ? `Távoli helyszín: ${REG[t.nuts]}` : 'A profilban még nincs célterület' };
+}
+function sizeScore(p, t) {
+  if (!p.revenue) return { score: 0, max: 15, why: 'Az árbevétel nincs megadva' };
+  const r = t.value / p.revenue;
+  if (r <= 1) return { score: 15, max: 15, why: `A becsült érték az éves árbevétel ${fmtPct(r)}-a` };
+  if (r <= 2) return { score: 8, max: 15, why: `A becsült érték az éves árbevétel ${fmtPct(r)}-a, ez kapacitáskockázat` };
+  return { score: 0, max: 15, why: `A becsült érték az árbevétel ${nf1.format(r)}-szorosa, önállóan nehezen vállalható` };
+}
+const normCert = s => String(s).toLowerCase().replace(/iso\s*\/\s*iec/g, 'iso').replace(/[^a-z0-9]/g, '');
+function checkReq(p, q) {
+  if (q.type === 'ref') {
+    const yearMin = CUR_YEAR - (q.years || 5);
+    const cands = p.references.filter(r => q.cpv.some(px => digits(r.cpv).startsWith(px)));
+    const recent = cands.filter(r => r.year >= yearMin);
+    const good = recent.filter(r => r.value >= (q.min || 0)).sort((a, b) => b.value - a.value);
+    if (good.length) {
+      if (q.kw && !good.some(r => r.title.toLowerCase().includes(q.kw))) return { st: 'part', why: `Van ágazati referencia (${good[0].title}), de nem ${q.kw}i jellegű` };
+      const g = q.kw ? good.find(r => r.title.toLowerCase().includes(q.kw)) : good[0];
+      return { st: 'ok', why: `${g.title} (${fmtM(g.value)}, ${g.year})` };
+    }
+    if (recent.length) { const m = Math.max(...recent.map(r => r.value)); return { st: 'part', why: `Van hasonló referencia, de a legnagyobb (${fmtM(m)}) a minimum (${fmtM(q.min)}) alatt marad` }; }
+    if (cands.length) return { st: 'part', why: `Van hasonló referencia, de ${yearMin} előtti` };
+    return { st: 'fail', why: 'Nincs a feltételnek megfelelő referencia a profilban' };
+  }
+  if (q.type === 'staff') {
+    const s = p.staff.find(x => x.role.toLowerCase().includes(q.role.toLowerCase()));
+    if (!s) return { st: 'fail', why: `Nincs „${q.role}” szakember a profilban` };
+    if (s.count >= (q.count || 1) && s.years >= (q.years || 0)) return { st: 'ok', why: `${s.count} fő ${s.role}, ${s.years} év tapasztalat` };
+    return { st: 'part', why: `${s.role}: ${s.count} fő, ${s.years} év (elvárás: ${q.count || 1} fő${q.years ? ', ' + q.years + ' év' : ''})` };
+  }
+  if (q.type === 'cert') {
+    return p.certs.some(c => normCert(c).includes(normCert(q.cert))) ? { st: 'ok', why: `Megvan: ${q.cert}` } : { st: 'fail', why: `Hiányzik: ${q.cert}` };
+  }
+  if (q.type === 'revenue') {
+    if (p.revenue >= q.min) return { st: 'ok', why: `Árbevétel: ${fmtM(p.revenue)}` };
+    if (p.revenue >= q.min * 0.8) return { st: 'part', why: `Árbevétel: ${fmtM(p.revenue)}, kevéssel a ${fmtM(q.min)} alatt` };
+    return { st: 'fail', why: `Árbevétel: ${fmtM(p.revenue)}, az elvárt ${fmtM(q.min)} alatt` };
+  }
+  return { st: 'check', why: 'Automatikusan nem ellenőrizhető, kézzel kell igazolni' };
+}
+function evaluate(p, t) {
+  const c = cpvScore(p, t), r = regionScore(p, t), s = sizeScore(p, t);
+  const reqs = t.reqs.map(q => Object.assign({}, q, checkReq(p, q)));
+  const W = { ok: 1, part: 0.5, check: 0.5, fail: 0 };
+  const share = reqs.length ? reqs.reduce((a, q) => a + W[q.st], 0) / reqs.length : 1;
+  const qs = Math.round(share * 25);
+  const total = c.score + r.score + s.score + qs;
+  const tier = total >= 75 ? 'hi' : total >= 50 ? 'mid' : 'lo';
+  const okN = reqs.filter(q => q.st === 'ok').length;
+  const verdict = reqs.some(q => q.st === 'fail')
+    ? { k: 'cons', label: 'Önállóan nem felel meg: a hiányzó feltételt konzorciummal, alvállalkozóval vagy új szakemberrel kell pótolni.' }
+    : reqs.some(q => q.st !== 'ok')
+      ? { k: 'cond', label: 'Feltételesen indulhat: van kézzel ellenőrizendő vagy részben teljesülő feltétel.' }
+      : { k: 'go', label: 'Minden automatikusan ellenőrizhető alkalmassági feltételnek megfelel.' };
+  return { total, tier, parts: { cpv: c, region: r, size: s, req: { score: qs, max: 25, why: `${okN} / ${reqs.length} követelmény teljesül automatikusan` } }, reqs, verdict };
+}
+const dueCls = t => (t.dueIn <= 7 ? 'urgent' : t.dueIn <= 14 ? 'soon' : '');
+
+/* ---------- market analytics ---------- */
+const profileDivs = p => [...new Set(p.cpv.map(c => digits(c).slice(0, 2)))];
+const marketAwards = p => { const d = profileDivs(p); return AWARDS.filter(a => d.some(x => digits(a.cpv).startsWith(x))); };
+function companyStats(name, list = AWARDS) {
+  const w = list.filter(a => a.winner === name).sort((a, b) => a.daysAgo - b.daysAgo);
+  if (!w.length) return { name, wins: 0, total: 0, avgBids: 0, single: 0, ratio: 0, buyers: [], last: null, awards: [] };
+  const counts = {};
+  w.forEach(a => { counts[a.buyer] = (counts[a.buyer] || 0) + 1; });
+  return {
+    name, wins: w.length, total: w.reduce((s, a) => s + a.value, 0),
+    avgBids: w.reduce((s, a) => s + a.bids, 0) / w.length,
+    single: w.filter(a => a.bids === 1).length / w.length,
+    ratio: w.reduce((s, a) => s + a.value / a.est, 0) / w.length,
+    buyers: Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([b, n]) => ({ b, n })),
+    last: w[0], awards: w,
+  };
+}
+function insightFor(s) {
+  if (s.single >= 0.5) return 'Az eljárásai legalább felében egyedül adott ajánlatot. Ezeknél az ajánlatkérőknél kicsi a verseny, egy belépő ajánlat is esélyes.';
+  if (s.ratio >= 0.97) return 'Szinte a becsült értéken nyer, vagyis árban van mozgástér egy olcsóbb ajánlatnak.';
+  if (s.avgBids >= 3) return 'Erős versenyben is nyer, jellemzően a becsült érték alatt. Árban nehéz lesz megelőzni.';
+  return 'Változó versenyhelyzetben nyer. Érdemes ajánlatkérőnként figyelni.';
+}
+
+/* ---------- AI (sample) ---------- */
+const ai = { state: 'checking', dl: 'checking' };
+function capUse(name) {
+  try {
+    if (window.claude && typeof window.claude.use === 'function') return Promise.resolve(window.claude.use(name)).catch(() => null);
+  } catch { /* no runtime */ }
+  return Promise.resolve(null);
+}
+const samplePromise = capUse('sample');
+const downloadsPromise = capUse('downloads');
+let downloads = null;
+samplePromise.then(s => { if (ai.state !== 'off') ai.state = s ? 'ready' : 'off'; paintAiChip(); paintAiAvail(); });
+downloadsPromise.then(d => { downloads = d; ai.dl = d ? 'ready' : 'off'; const t = curTender(); if (t) paintDraft(t); });
+const PERMANENT = new Set(['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed']);
+function aiErr(code) {
+  switch (code) {
+    case 'not_granted': return 'Az AI-hoz engedélyezni kell, hogy az oldal Claude-ot használjon. Engedély nélkül a szabályalapú ellenőrzés és a sablon-tervezet működik.';
+    case 'sampling_disabled': case 'not_declared': case 'capability_disabled': case 'capability_removed': return 'Az AI ebben a nézetben nem érhető el.';
+    case 'rate_limited': return 'Túl sok kérés vagy elérted a használati korlátot. Próbáld újra egy kicsit később.';
+    case 'session_expired': return 'Lejárt a bejelentkezés. Jelentkezz be újra a claude.ai-on, majd próbáld újra.';
+    case 'refused': return 'Erre a kérésre nem érkezett válasz. Fogalmazd át a kiemelendő szempontokat.';
+    case 'invalid_json': return 'Az AI válaszát nem sikerült feldolgozni. Próbáld újra.';
+    case 'prompt_too_large': return 'Túl hosszú a bemenet. Rövidítsd a megjegyzést vagy a profil szövegeit.';
+    case 'empty_completion': return 'Üres válasz érkezett. Próbáld újra.';
+    case 'cancelled': return '';
+    default: return 'Megszakadt a kapcsolat. Próbáld újra.';
+  }
+}
+function setAiOff() { ai.state = 'off'; paintAiChip(); paintAiAvail(); }
+function fail(m, e) {
+  const code = e && typeof e.code === 'string' ? e.code : 'upstream_error';
+  m.status = code === 'cancelled' ? 'stopped' : 'error';
+  if (code === 'refused') m.text = '';
+  else if (e && typeof e.text === 'string' && e.text && code !== 'invalid_json') m.text = e.text;
+  m.err = aiErr(code);
+  if (PERMANENT.has(code)) setAiOff();
+}
+const mem = { sum: {}, qual: {}, draft: {}, notes: {} };
+const qkey = (p, t) => p.id + ':' + t.id;
+
+function tenderText(t) {
+  return [
+    `Tárgy: ${t.title}`,
+    `Ajánlatkérő: ${t.buyer} (${t.buyerType})`,
+    `Azonosító: ${t.ekr}`,
+    `Eljárás: ${t.procedure}, ${t.regime.toLowerCase()} eljárásrend`,
+    `Becsült érték: nettó ${fmtM(t.value)}`,
+    `Ajánlattételi határidő: ${fmtDate(t.due)} ${t.dueTime} (${dueText(t.dueIn)})`,
+    `Teljesítés helye: ${REG[t.nuts]}`,
+    `Időtartam: ${t.duration}`,
+    `Forrás: ${t.funding}`,
+    `Részajánlat: ${t.lots}`,
+    `Ajánlati biztosíték: ${t.guarantee ? fmtM(t.guarantee) : 'nincs'}`,
+    `Fő CPV: ${t.cpv} ${cpvName(t.cpv)}${t.cpvExtra.length ? '; további: ' + t.cpvExtra.map(c => c + ' ' + cpvName(c)).join(', ') : ''}`,
+    `Tárgy és mennyiség: ${t.summary}`,
+    'Alkalmassági követelmények:',
+    ...t.reqs.map(q => `- ${q.code}: ${q.text}`),
+    'Értékelési szempontok (súlyszám):',
+    ...t.criteria.map(([n, w]) => `- ${n}: ${w}`),
+  ].join('\n');
+}
+function profileText(p) {
+  return [
+    `Cégnév: ${p.name}`,
+    `Tevékenység: ${p.sector || 'nincs megadva'}; székhely: ${p.hq || 'nincs megadva'}`,
+    `Bemutatkozás: ${p.about || 'nincs megadva'}`,
+    `Utolsó lezárt üzleti év nettó árbevétele: ${fmtM(p.revenue)}; létszám: ${p.employees} fő`,
+    `Fő CPV-kódok: ${p.cpv.map(c => c + ' ' + cpvName(c)).join(', ') || 'nincs megadva'}`,
+    `Célterület: ${p.regions.map(r => REG[r] || r).join(', ') || 'nincs megadva'}`,
+    `Tanúsítványok, nyilvántartások: ${p.certs.join(', ') || 'nincs megadva'}`,
+    'Szakemberek:',
+    ...(p.staff.length ? p.staff.map(s => `- ${s.role}: ${s.count} fő, ${s.years} év tapasztalat`) : ['- nincs megadva']),
+    'Referenciák:',
+    ...(p.references.length ? p.references.map(r => `- ${r.title} (${r.buyer || 'ajánlatkérő nincs megadva'}), nettó ${fmtM(r.value)}, ${r.year}, CPV ${r.cpv}`) : ['- nincs megadva']),
+    `Erősségek: ${p.strengths || 'nincs megadva'}`,
+  ].join('\n');
+}
+function historyText(t) {
+  const h = AWARDS.filter(a => a.buyer === t.buyer).sort((a, b) => a.daysAgo - b.daysAgo);
+  return h.length ? h.map(a => `- ${fmtDate(a.date)}: ${a.title}; nyertes: ${a.winner}; ${fmtM(a.value)} (becsült: ${fmtM(a.est)}); ${a.bids} ajánlattevő`).join('\n') : 'Nincs korábbi adat.';
+}
+function docList(t) {
+  const l = ['Felolvasólap', 'Kbt. 66. § (2) bekezdése szerinti nyilatkozat', 'Nyilatkozat a kizáró okokról'];
+  if (t.regime === 'Uniós') l.push('Egységes európai közbeszerzési dokumentum (EEKD)');
+  l.push('KKV-nyilatkozat', 'Alvállalkozói nyilatkozat', 'Referenciaigazolások vagy referencianyilatkozatok', 'A szakemberek önéletrajza és rendelkezésre állási nyilatkozata', 'Cégkivonat és aláírási címpéldány');
+  if (t.guarantee) l.push(`Az ajánlati biztosíték (${fmtM(t.guarantee)}) igazolása`);
+  return l;
+}
+function promptSummary(t) {
+  return `Te tapasztalt magyar közbeszerzési tanácsadó vagy. Foglald össze az alábbi kiírást egy cégvezetőnek, aki fél perc alatt akar dönteni arról, hogy foglalkozzon-e vele.
+
+Szabályok:
+- Magyarul írj, tömören, legfeljebb 130 szóban.
+- Csak a kiírásban szereplő adatokat használd, ne találj ki semmit.
+- Formátum: 4-5 felsoroláspont „- ” jellel (tárgy és mennyiség; pénz, határidő, időtartam; kulcs alkalmassági feltételek; mivel nyerhető: értékelési szempontok), majd egy külön sor „**Figyelj:** ” kezdettel a legnagyobb kockázatról egy mondatban.
+
+KIÍRÁS
+${tenderText(t)}`;
+}
+function promptQual(p, t) {
+  return `Te magyar közbeszerzési szakértő vagy. Döntsd el, hogy az alábbi cég megfelel-e a kiírás alkalmassági követelményeinek, és érdemes-e elindulnia.
+
+Szabályok:
+- Csak a megadott adatokra támaszkodj. Ha egy követelményről a profil alapján nem lehet dönteni, a státusz „nem derül ki”.
+- A „konzorciummal” javaslat akkor illik, ha egy hiányzó feltétel partnerrel, alvállalkozóval vagy kapacitást nyújtó szervezettel pótolható.
+- Magyarul válaszolj.
+
+Válaszolj KIZÁRÓLAG egy JSON-objektummal, ebben a szerkezetben:
+{"javaslat":"indulj","osszegzes":"legfeljebb 2 mondat","kovetelmenyek":[{"kod":"M.1","statusz":"megfelel","indoklas":"1 rövid mondat"}],"nyeresi_esely":"1 mondat az értékelési szempontok és a korábbi eredmények alapján","teendok":["legfeljebb 4 rövid, konkrét teendő"]}
+A "javaslat" értéke pontosan egy ezek közül: "indulj", "konzorciummal", "ne indulj".
+A "statusz" értéke pontosan egy ezek közül: "megfelel", "részben", "nem felel meg", "nem derül ki".
+A "kovetelmenyek" tömbben minden alkalmassági követelményhez pontosan egy elem legyen, a kiírásban szereplő kóddal.
+
+CÉGPROFIL
+${profileText(p)}
+
+KIÍRÁS
+${tenderText(t)}
+
+KORÁBBI EREDMÉNYEK ENNÉL AZ AJÁNLATKÉRŐNÉL
+${historyText(t)}`;
+}
+function promptDraft(p, t, notes) {
+  return `Te tapasztalt magyar közbeszerzési ajánlatíró vagy. Írj ajánlat-tervezetet az alábbi cég nevében az alábbi kiírásra. Ez munkaanyag, amelyet a cég szakembere véglegesít.
+
+Szabályok:
+- Magyarul, hivatalos, de jól olvasható stílusban írj.
+- Kizárólag a cégprofilban és a kiírásban szereplő tényeket használd. Ne találj ki referenciát, szakembert, számot, dátumot vagy jogszabályhelyet.
+- Ahol adat hiányzik vagy döntés kell, írd így: [KITÖLTENDŐ: mi kell ide].
+- Az alkalmassági követelményeknél jelezd, ha a profil alapján valami hiányzik, és javasolj megoldást (konzorciumi partner, alvállalkozó, kapacitást nyújtó szervezet).
+- Legfeljebb kb. 650 szó.
+- Formázás: „# ” a címhez, „## ” a fejezetcímekhez, „- ” a felsoroláshoz, **félkövér** a kiemeléshez. Táblázatot ne használj.
+
+Fejezetek, pontosan ebben a sorrendben:
+# Ajánlat-tervezet – ${t.title}
+## 1. Kísérőlevél
+## 2. Megvalósítási koncepció
+## 3. Alkalmasság igazolása
+## 4. Javasolt vállalások az értékelési szempontokra
+## 5. Benyújtandó dokumentumok – ellenőrzőlista
+## 6. Nyitott kérdések, kockázatok
+
+Az 5. fejezethez ezt a listát használd kiindulásnak, és ne egészítsd ki jogszabályhelyekkel: ${docList(t).join('; ')}.
+${notes ? '\nA cég kérése, ezt mindenképp vedd figyelembe: ' + notes + '\n' : ''}
+CÉGPROFIL
+${profileText(p)}
+
+KIÍRÁS
+${tenderText(t)}`;
+}
+function templateDraft(p, t) {
+  const ev = evaluate(p, t);
+  const L = [];
+  L.push(`# Ajánlat-tervezet – ${t.title}`);
+  L.push('_Sablonból, AI nélkül készült munkaanyag. A [KITÖLTENDŐ] részeket a cég szakembere egészíti ki._');
+  L.push('## 1. Kísérőlevél');
+  L.push(`Tisztelt ${t.buyer}!`);
+  L.push(`${cap(aAz(p.name))} ${p.name} ezúton benyújtja ajánlatát ${aAz(t.title)} „${t.title}” tárgyú közbeszerzési eljárásban (${t.ekr}). ${p.about}`);
+  L.push('Ajánlatunkat a kiírás minden feltételének elfogadásával tesszük. [KITÖLTENDŐ: aláíró neve és beosztása]');
+  L.push('## 2. Megvalósítási koncepció');
+  L.push(`- **Feladat:** ${t.summary}`);
+  L.push(`- **Ütemezés:** ${t.duration}; [KITÖLTENDŐ: mérföldkövek és kezdési időpont]`);
+  L.push(`- **Erőforrások:** ${p.staff.length ? p.staff.map(s => `${s.count} fő ${s.role} (${s.years} év)`).join('; ') : '[KITÖLTENDŐ: szakemberek]'}`);
+  L.push(`- **Minőségbiztosítás:** ${p.certs.length ? p.certs.join(', ') + ' szerinti folyamatok' : '[KITÖLTENDŐ: minőségbiztosítás]'}; [KITÖLTENDŐ: projektspecifikus minőségellenőrzési terv]`);
+  if (p.strengths) L.push(`- **Erősségeink:** ${p.strengths}`);
+  L.push('## 3. Alkalmasság igazolása');
+  ev.reqs.forEach(q => {
+    const fix = q.st === 'fail' ? ' [KITÖLTENDŐ: konzorciumi partner, alvállalkozó vagy kapacitást nyújtó szervezet]' : q.st !== 'ok' ? ' [KITÖLTENDŐ: igazolás]' : '';
+    L.push(`- **${q.code}** – ${q.text} → ${ST_LABEL[q.st].slice(2)}: ${q.why}.${fix}`);
+  });
+  L.push('## 4. Javasolt vállalások az értékelési szempontokra');
+  t.criteria.forEach(([n, w]) => L.push(`- **${n}** (${w} pont): ${/ár/i.test(n) ? `[KITÖLTENDŐ: ajánlati ár; a becsült érték nettó ${fmtM(t.value)}]` : '[KITÖLTENDŐ: vállalás]'}`));
+  L.push('## 5. Benyújtandó dokumentumok – ellenőrzőlista');
+  docList(t).forEach(d => L.push(`- ${d}`));
+  L.push('## 6. Nyitott kérdések, kockázatok');
+  const risks = ev.reqs.filter(q => q.st !== 'ok').map(q => `- ${q.code}: ${q.why}`);
+  if (t.dueIn <= 7) risks.push(`- Szoros határidő: az ajánlatot ${dueText(t.dueIn)} be kell adni.`);
+  if (p.revenue && t.value > p.revenue) risks.push('- A becsült érték meghaladja az éves árbevételt: kapacitás- és finanszírozási kockázat.');
+  L.push(...(risks.length ? risks : ['- Az automatikus ellenőrzés nem talált nyitott kérdést. [KITÖLTENDŐ: helyszíni bejárás, kiegészítő tájékoztatás]']));
+  return L.join('\n');
+}
+function mdToHtml(md) {
+  const inline = s => s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[KITÖLTENDŐ[^\]]*\]/g, m => `<mark class="todo">${m}</mark>`)
+    .replace(/(^|\s)_(.+?)_(?=\s|$)/g, '$1<em>$2</em>');
+  let html = '', inList = false;
+  for (const raw of esc(md).split('\n')) {
+    const line = raw.trimEnd();
+    if (/^\s*[-*•]\s+/.test(line)) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${inline(line.replace(/^\s*[-*•]\s+/, ''))}</li>`;
+      continue;
+    }
+    if (inList) { html += '</ul>'; inList = false; }
+    if (/^###\s+/.test(line)) html += `<h5>${inline(line.replace(/^###\s+/, ''))}</h5>`;
+    else if (/^##\s+/.test(line)) html += `<h4>${inline(line.replace(/^##\s+/, ''))}</h4>`;
+    else if (/^#\s+/.test(line)) html += `<h3>${inline(line.replace(/^#\s+/, ''))}</h3>`;
+    else if (line.trim()) html += `<p>${inline(line)}</p>`;
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+const thinking = msg => `<p class="thinking"><span class="spin" aria-hidden="true"></span>${esc(msg)}</p>`;
+
+async function runSummary(t) {
+  if (mem.sum[t.id] && mem.sum[t.id].status === 'running') return;
+  const sample = await samplePromise;
+  if (!sample) { setAiOff(); return; }
+  const m = mem.sum[t.id] = { status: 'running', text: '', ctl: new AbortController() };
+  paintSummary(t);
+  $('#sec-summary')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+  try {
+    const r = await sample(promptSummary(t), { modelTier: 'quick', signal: m.ctl.signal, onText: ({ text }) => { m.text = text; paintSummary(t); } });
+    m.status = 'done'; m.text = r.text; m.truncated = r.truncated;
+  } catch (e) { fail(m, e); }
+  paintSummary(t);
+}
+async function runQual(t) {
+  const p = prof(), k = qkey(p, t);
+  if (mem.qual[k] && mem.qual[k].status === 'running') return;
+  const sample = await samplePromise;
+  if (!sample) { setAiOff(); return; }
+  const m = mem.qual[k] = { status: 'running', ctl: new AbortController() };
+  paintQual(t);
+  $('#out-qual')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+  try {
+    const d = await sample.json(promptQual(p, t), { modelTier: 'default', signal: m.ctl.signal });
+    if (!d || typeof d !== 'object' || Array.isArray(d)) throw { code: 'invalid_json' };
+    m.status = 'done'; m.data = d;
+  } catch (e) { fail(m, e); }
+  paintQual(t);
+}
+async function runDraft(t, again) {
+  const p = prof(), k = qkey(p, t);
+  if (mem.draft[k] && mem.draft[k].status === 'running') return;
+  const sample = await samplePromise;
+  if (!sample) { setAiOff(); return; }
+  const notes = (mem.notes[k] || '').trim().slice(0, 1500);
+  const m = mem.draft[k] = { status: 'running', text: '', source: 'ai', ctl: new AbortController() };
+  paintDraft(t);
+  const opts = { modelTier: 'default', signal: m.ctl.signal, onText: ({ text }) => { m.text = text; paintDraft(t); } };
+  if (again) opts.cache = false;
+  try {
+    const r = await sample(promptDraft(p, t, notes), opts);
+    m.status = 'done'; m.text = r.text; m.truncated = r.truncated;
+    drafts[k] = { text: r.text, source: 'ai' }; store.set(KEY.drafts, drafts);
+  } catch (e) { fail(m, e); }
+  paintDraft(t);
+}
+
+/* ---------- shell ---------- */
+function paintPicker() {
+  const sel = $('#pick-profile');
+  sel.innerHTML = profiles.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  sel.value = state.pid;
+}
+function paintAiChip() {
+  const c = $('#ai-chip');
+  c.className = 'chip' + (ai.state === 'ready' ? ' ai-on' : '');
+  c.textContent = ai.state === 'ready' ? 'AI bekapcsolva' : ai.state === 'off' ? 'AI nélkül' : 'AI: ellenőrzés…';
+  c.title = ai.state === 'off' ? 'Az AI-funkciók a claude.ai-on megnyitva működnek.' : '';
+}
+function setTab(tab) { state.tab = tab; state.confirm = null; saveUi(); renderTab(); window.scrollTo(0, 0); }
+function switchProfile(pid, rerender = true) {
+  state.pid = pid; state.confirm = null; saveUi(); paintPicker();
+  if (rerender) renderTab();
+  if (state.open) renderDrawer();
+}
+function renderTab() {
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === state.tab)));
+  const v = $('#view');
+  v.setAttribute('aria-labelledby', 'tab-' + state.tab);
+  if (state.tab === 'tenders') { v.innerHTML = viewTenders(); afterTenders(); }
+  else if (state.tab === 'market') v.innerHTML = viewMarket();
+  else if (state.tab === 'report') { v.innerHTML = viewReport(); $('#rep-freq').value = report.freq; }
+  else if (state.tab === 'profile') v.innerHTML = viewProfile();
+  else v.innerHTML = viewClients();
+}
+const NOTICE = '<p class="notice"><b>Példaadat.</b> Minden cég, ajánlatkérő és kiírás kitalált. A valódi adatforrás (TED, EKR) bekötése a következő lépés.</p>';
+
+/* ---------- tenders view ---------- */
+function viewTenders() {
+  const divs = [...new Set(TENDERS.map(t => digits(t.cpv).slice(0, 2)))].sort();
+  const nuts = [...new Set(TENDERS.map(t => t.nuts))].sort((a, b) => REG[a].localeCompare(REG[b], 'hu'));
+  return `${NOTICE}
+  <div class="layout">
+    <aside class="rail">
+      <details class="filters" id="filters">
+        <summary>Szűrők</summary>
+        <div class="fbody">
+          <div class="field"><label for="f-q">Keresés</label><input id="f-q" type="search" data-filter="q" placeholder="Tárgy, ajánlatkérő, azonosító…" value="${esc(state.f.q)}"></div>
+          <label class="check"><input type="checkbox" id="f-fit" data-filter="onlyFit"${state.f.onlyFit ? ' checked' : ''}> Csak a profilhoz illők (50 pont felett)</label>
+          <div class="field"><label for="f-div">Ágazat (CPV)</label><select id="f-div" data-filter="div"><option value="">Minden ágazat</option>${divs.map(d => `<option value="${d}">${esc(DIV[d] || 'CPV ' + d)} (${d})</option>`).join('')}</select></div>
+          <div class="field"><label for="f-region">Teljesítés helye</label><select id="f-region" data-filter="region"><option value="">Bárhol</option><option value="profile">A profil célterülete</option>${nuts.map(n => `<option value="${n}">${esc(REG[n])}</option>`).join('')}</select></div>
+          <div class="field"><label for="f-regime">Eljárásrend</label><select id="f-regime" data-filter="regime"><option value="">Mind</option><option value="Uniós">Uniós</option><option value="Nemzeti">Nemzeti</option></select></div>
+          <div class="field"><label for="f-due">Ajánlattételi határidő</label><select id="f-due" data-filter="due"><option value="">Bármikor</option><option value="7">7 napon belül</option><option value="14">14 napon belül</option><option value="30">30 napon belül</option></select></div>
+          <div class="two">
+            <div class="field"><label for="f-min">Min. érték (M Ft)</label><input id="f-min" type="number" min="0" inputmode="numeric" data-filter="min" value="${esc(state.f.min)}"></div>
+            <div class="field"><label for="f-max">Max. érték (M Ft)</label><input id="f-max" type="number" min="0" inputmode="numeric" data-filter="max" value="${esc(state.f.max)}"></div>
+          </div>
+          <button class="btn ghost" type="button" data-act="reset-filters">Szűrők törlése</button>
+        </div>
+      </details>
+    </aside>
+    <section aria-labelledby="res-h">
+      <div class="res-head">
+        <div><h1 class="h1" id="res-h">Nyitott kiírások</h1><p class="sub" id="res-sum"></p></div>
+        <div class="field inline"><label for="f-sort">Rendezés</label><select id="f-sort" data-filter="sort"><option value="fit">Illeszkedés szerint</option><option value="due">Határidő szerint</option><option value="value">Érték szerint</option><option value="new">Legújabb elöl</option></select></div>
+      </div>
+      <div class="tlist" id="tlist"></div>
+    </section>
+  </div>`;
+}
+function afterTenders() {
+  ['div', 'region', 'regime', 'due', 'sort'].forEach(k => { const el = $(`[data-filter="${k}"]`); if (el) el.value = state.f[k]; });
+  const f = state.f;
+  $('#filters').open = window.matchMedia('(min-width: 901px)').matches || !!(f.q || f.div || f.region || f.regime || f.due || f.min || f.max);
+  paintList();
+}
+function filteredTenders(all) {
+  const p = prof(), f = state.f;
+  let list = all.slice();
+  if (f.q) { const q = f.q.toLowerCase(); list = list.filter(({ t }) => [t.title, t.buyer, t.summary, t.ekr, cpvName(t.cpv)].join(' ').toLowerCase().includes(q)); }
+  if (f.onlyFit) list = list.filter(x => x.ev.total >= 50);
+  if (f.div) list = list.filter(({ t }) => [t.cpv, ...t.cpvExtra].some(c => digits(c).startsWith(f.div)));
+  if (f.region === 'profile') list = list.filter(({ t }) => p.regions.includes(t.nuts) || p.regions.includes('ORSZ'));
+  else if (f.region) list = list.filter(({ t }) => t.nuts === f.region);
+  if (f.regime) list = list.filter(({ t }) => t.regime === f.regime);
+  if (f.due) list = list.filter(({ t }) => t.dueIn <= Number(f.due));
+  const min = parseFloat(f.min), max = parseFloat(f.max);
+  if (!Number.isNaN(min)) list = list.filter(({ t }) => t.value >= min);
+  if (!Number.isNaN(max)) list = list.filter(({ t }) => t.value <= max);
+  const S = {
+    fit: (a, b) => b.ev.total - a.ev.total || a.t.dueIn - b.t.dueIn,
+    due: (a, b) => a.t.dueIn - b.t.dueIn,
+    value: (a, b) => b.t.value - a.t.value,
+    new: (a, b) => a.t.pubAgo - b.t.pubAgo || b.ev.total - a.ev.total,
+  };
+  return list.sort(S[f.sort] || S.fit);
+}
+function tenderRow({ t, ev }) {
+  return `<button class="trow" type="button" data-open="${t.id}">
+    <span class="fit ${ev.tier}"><span class="sr">Illeszkedés: </span>${ev.total}</span>
+    <span class="tmain">
+      <span class="ttitle">${esc(t.title)}</span>
+      <span class="tmeta">${esc(t.buyer)} · ${esc(REG[t.nuts])} · ${esc(t.procedure)}</span>
+      <span class="tchips">${t.pubAgo <= 2 ? '<span class="chip new">Új</span>' : ''}<span class="chip mono">${esc(t.cpv)}</span><span class="chip">${esc(t.regime)}</span><span class="chip">${esc(t.funding)}</span></span>
+    </span>
+    <span class="tside">
+      <span class="tval">${fmtM(t.value)}</span>
+      <span class="tlbl">becsült érték, nettó</span>
+      <span class="due ${dueCls(t)}">${daysLabel(t.dueIn)}</span>
+      <span class="tlbl">határidő: ${fmtShort(t.due)}</span>
+    </span>
+  </button>`;
+}
+function paintList() {
+  const p = prof();
+  const all = TENDERS.map(t => ({ t, ev: evaluate(p, t) }));
+  const list = filteredTenders(all);
+  const fitN = all.filter(x => x.ev.total >= 50).length;
+  const newN = all.filter(x => x.t.pubAgo <= 2 && x.ev.total >= 50).length;
+  $('#res-sum').innerHTML = `<b>${esc(p.name)}</b>: ${all.length} nyitott kiírásból ${fitN} illik a profilhoz${newN ? `, ebből ${newN} új` : ''}.`
+    + (list.length !== (state.f.onlyFit ? fitN : all.length) ? ` A szűrőkkel ${list.length} látszik.` : '')
+    + (state.f.onlyFit ? ' <button class="link" type="button" data-act="show-all">Mutasd mindet</button>' : '');
+  $('#tlist').innerHTML = list.length ? list.map(tenderRow).join('')
+    : '<div class="empty">Nincs a szűrőknek megfelelő kiírás. <button class="link" type="button" data-act="reset-filters">Szűrők törlése</button></div>';
+}
+
+/* ---------- drawer ---------- */
+function openTender(id, opener) {
+  state.open = id; state.opener = opener || null;
+  renderDrawer();
+  $('#drawer').hidden = false; $('#scrim').hidden = false;
+  $('#app').inert = true;
+  document.documentElement.classList.add('locked');
+  $('#drawer').scrollTop = 0;
+  $('#d-close')?.focus();
+}
+function closeDrawer() {
+  state.open = null;
+  $('#drawer').hidden = true; $('#scrim').hidden = true;
+  $('#app').inert = false;
+  document.documentElement.classList.remove('locked');
+  if (state.opener && document.contains(state.opener)) state.opener.focus();
+  state.opener = null;
+}
+function renderDrawer() {
+  const t = curTender(); if (!t) return;
+  const p = prof(), ev = evaluate(p, t), k = qkey(p, t);
+  if (!mem.draft[k] && drafts[k] && typeof drafts[k].text === 'string') mem.draft[k] = { status: 'done', text: drafts[k].text, source: drafts[k].source === 'tpl' ? 'tpl' : 'ai' };
+  const hist = AWARDS.filter(a => a.buyer === t.buyer).sort((a, b) => a.daysAgo - b.daysAgo);
+  const facts = [
+    ['Becsült érték', `${fmtM(t.value)} <span class="muted">nettó</span>`],
+    ['Ajánlattételi határidő', `${fmtDate(t.due)} ${esc(t.dueTime)} <span class="due ${dueCls(t)}">(${daysLabel(t.dueIn)})</span>`],
+    ['Eljárás', `${esc(t.procedure)} · ${esc(t.regime)}`],
+    ['Teljesítés helye', `${esc(REG[t.nuts])} <span class="mono muted">${t.nuts}</span>`],
+    ['Időtartam', esc(t.duration)],
+    ['Forrás', esc(t.funding)],
+    ['Részajánlat', esc(t.lots)],
+    ['Ajánlati biztosíték', t.guarantee ? fmtM(t.guarantee) : 'Nincs'],
+  ];
+  const parts = [['Tevékenység (CPV)', ev.parts.cpv], ['Teljesítés helye', ev.parts.region], ['Méret az árbevételhez', ev.parts.size], ['Alkalmassági feltételek', ev.parts.req]];
+  $('#drawer').innerHTML = `
+  <div class="d-head">
+    <div class="d-title-wrap">
+      <p class="eyebrow"><span class="mono">${esc(t.ekr)}</span> · közzétéve ${pubLabel(t.pubAgo)}</p>
+      <h2 class="d-title" id="d-title">${esc(t.title)}</h2>
+      <p class="d-buyer">${esc(t.buyer)} <span class="muted">· ${esc(t.buyerType)}</span></p>
+    </div>
+    <div class="stamp ${ev.tier}" role="img" aria-label="Illeszkedés: ${ev.total} / 100, ${TIER[ev.tier]}"><b>${ev.total}</b><span>pont</span></div>
+    <button class="icon-btn" id="d-close" type="button" data-act="close" aria-label="Bezárás">✕</button>
+  </div>
+  <div class="pad">
+    <div class="d-actions">
+      <button class="btn" type="button" data-act="ai-summary" data-ai-btn>AI-összefoglaló</button>
+      <button class="btn" type="button" data-act="ai-qual" data-ai-btn>Megfelelünk? (AI)</button>
+      <button class="btn primary" type="button" data-act="goto-draft">Ajánlat-tervezet</button>
+    </div>
+    <p class="ai-off" id="ai-off-note" hidden>Az AI-funkciók a claude.ai-on, bejelentkezve működnek. Itt is használható a szabályalapú ellenőrzés és a sablon-tervezet.</p>
+    <section class="dsec"><dl class="facts">${facts.map(([a, b]) => `<div class="fact"><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></section>
+    <section class="dsec" id="sec-summary" hidden><h3>AI-összefoglaló</h3><div class="ai-out" id="out-summary"></div></section>
+    <section class="dsec"><h3>A beszerzés tárgya</h3><p>${esc(t.summary)}</p>
+      <p class="small muted">CPV: <span class="mono">${esc(t.cpv)}</span> ${esc(cpvName(t.cpv))}${t.cpvExtra.map(c => ` · <span class="mono">${esc(c)}</span> ${esc(cpvName(c))}`).join('')}</p></section>
+    <section class="dsec"><h3>Illeszkedés ${aAz(p.name)} ${esc(p.name)} profiljához</h3>
+      <div class="bd">${parts.map(([l, x]) => `<div class="bd-row"><div class="bd-l">${l}</div><div class="bd-m" aria-hidden="true"><span style="width:${(x.score / x.max) * 100}%"></span></div><div class="bd-s">${x.score}/${x.max}</div><div class="bd-w">${esc(x.why)}</div></div>`).join('')}</div></section>
+    <section class="dsec"><h3>Alkalmassági követelmények</h3>
+      <p class="verdict v-${ev.verdict.k}">${esc(ev.verdict.label)}</p>
+      <ul class="reqs">${ev.reqs.map(q => `<li class="req"><span class="req-code mono">${esc(q.code)}</span><div class="req-body"><p>${esc(q.text)}</p><p class="req-auto">${stChip(q.st)} <span class="muted">${esc(q.why)}</span></p><p class="req-ai" data-ai-req="${esc(q.code)}" hidden></p></div></li>`).join('')}</ul>
+      <div class="ai-box" id="out-qual" hidden></div></section>
+    <section class="dsec"><h3>Értékelési szempontok</h3>
+      <ul class="crit">${t.criteria.map(([n, w]) => `<li><span>${esc(n)}</span><span class="wbar" aria-hidden="true"><span style="width:${w}%"></span></span><span class="w">${w} pont</span></li>`).join('')}</ul></section>
+    <section class="dsec"><h3>Ennél az ajánlatkérőnél korábban</h3>
+      ${hist.length ? `<ul class="hist">${hist.map(a => `<li><div><b>${esc(a.winner)}</b>${a.winner === p.name ? ' <span class="chip tiny me">Te</span>' : ''} · ${esc(a.title)}</div><div class="small muted">${fmtDate(a.date)} · ${fmtM(a.value)} (becsült: ${fmtM(a.est)}) · ${a.bids} ajánlattevő${a.bids === 1 ? ' <span class="single">Egyajánlatos</span>' : ''}</div></li>`).join('')}</ul>` : '<p class="muted">Ennél az ajánlatkérőnél nincs korábbi eredmény a példaadatokban.</p>'}</section>
+    <section class="dsec" id="sec-draft"><h3>Ajánlat-tervezet</h3>
+      <p class="small muted">Személyre szabott munkaanyag ${aAz(p.name)} ${esc(p.name)} profiljából: kísérőlevél, megvalósítási koncepció, alkalmasság, vállalások, dokumentumlista.</p>
+      <div class="field"><label for="draft-notes">Mit emeljünk ki? (nem kötelező)</label><textarea id="draft-notes" rows="2" placeholder="Pl. 60 hónap jótállás, kezdés 2 héten belül, saját keverőtelep"></textarea></div>
+      <div class="btn-row">
+        <button class="btn primary" type="button" data-act="ai-draft" data-ai-btn>Tervezet írása AI-jal</button>
+        <button class="btn" type="button" data-act="tpl-draft">Sablon-tervezet (AI nélkül)</button>
+        <button class="btn ghost" type="button" data-act="stop-draft" id="stop-draft" hidden>Leállítás</button>
+      </div>
+      <p class="small muted" id="draft-status"></p>
+      <div class="doc" id="out-draft" hidden></div>
+      <div class="btn-row" id="draft-tools" hidden>
+        <button class="btn" type="button" data-act="copy-draft">Másolás</button>
+        <button class="btn" type="button" data-act="dl-draft" id="dl-draft">Letöltés (.md)</button>
+        <button class="btn ghost" type="button" data-act="ai-draft-again" data-ai-btn>Újraírás AI-jal</button>
+      </div>
+      <textarea class="copy-fallback" id="copy-fallback" readonly hidden aria-label="A tervezet szövege másoláshoz"></textarea>
+    </section>
+  </div>`;
+  $('#draft-notes').value = mem.notes[k] || '';
+  paintAiAvail(); paintSummary(t); paintQual(t); paintDraft(t);
+}
+function paintAiAvail() {
+  if (!state.open) return;
+  const off = ai.state === 'off';
+  $$('[data-ai-btn]', $('#drawer')).forEach(b => {
+    b.disabled = off;
+    b.title = off ? 'Az AI-funkciók a claude.ai-on megnyitva működnek.' : '';
+  });
+  const note = $('#ai-off-note'); if (note) note.hidden = !off;
+}
+function paintSummary(t) {
+  if (state.open !== t.id) return;
+  const m = mem.sum[t.id], sec = $('#sec-summary'), out = $('#out-summary');
+  if (!sec) return;
+  if (!m || (m.status === 'stopped' && !m.text)) { sec.hidden = true; return; }
+  sec.hidden = false;
+  if (m.status === 'running' && !m.text) { out.innerHTML = thinking('Az AI olvassa a kiírást…') + '<div><button class="btn ghost" type="button" data-act="stop-sum">Leállítás</button></div>'; return; }
+  out.innerHTML = mdToHtml(m.text || '') + (m.err ? `<p class="err">${esc(m.err)}</p>` : '') + (m.truncated ? '<p class="small muted">A válasz a hosszkorlát miatt megszakadt.</p>' : '');
+}
+const AI_ST = { 'megfelel': 'ok', 'részben': 'part', 'nem felel meg': 'fail', 'nem derül ki': 'check' };
+const AI_VERDICT = { 'indulj': ['go', 'Indulj'], 'konzorciummal': ['cons', 'Konzorciummal vagy alvállalkozóval'], 'ne indulj': ['no', 'Ne indulj'] };
+function paintQual(t) {
+  if (state.open !== t.id) return;
+  const box = $('#out-qual'); if (!box) return;
+  const m = mem.qual[qkey(prof(), t)];
+  $$('[data-ai-req]').forEach(el => { el.hidden = true; el.innerHTML = ''; });
+  if (!m || m.status === 'stopped') { box.hidden = true; return; }
+  box.hidden = false;
+  if (m.status === 'running') { box.innerHTML = thinking('Az AI összeveti a profilt a követelményekkel. Ez 10–60 másodperc is lehet.') + '<div><button class="btn ghost" type="button" data-act="stop-qual">Leállítás</button></div>'; return; }
+  if (m.status !== 'done' || !m.data) { box.innerHTML = `<p class="err">${esc(m.err || 'Az AI-értékelés nem sikerült.')}</p>`; return; }
+  const d = m.data;
+  const v = AI_VERDICT[String(d.javaslat || '').trim().toLowerCase()] || ['cond', String(d.javaslat || 'Nincs javaslat')];
+  const todo = Array.isArray(d.teendok) ? d.teendok.slice(0, 5) : [];
+  box.innerHTML = `<div class="ai-verdict v-${v[0]}"><span class="eyebrow">AI-javaslat</span><b>${esc(v[1])}</b>${d.osszegzes ? `<p>${esc(d.osszegzes)}</p>` : ''}${d.nyeresi_esely ? `<p class="small"><b>Nyerési esély:</b> ${esc(d.nyeresi_esely)}</p>` : ''}${todo.length ? `<p class="small"><b>Teendők:</b></p><ul class="small">${todo.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>`;
+  (Array.isArray(d.kovetelmenyek) ? d.kovetelmenyek : []).forEach(r => {
+    if (!r || typeof r !== 'object') return;
+    const el = document.querySelector(`[data-ai-req="${CSS.escape(String(r.kod || ''))}"]`); if (!el) return;
+    el.hidden = false;
+    el.innerHTML = `<span class="ai-tag">AI</span> ${stChip(AI_ST[String(r.statusz || '').trim().toLowerCase()] || 'check')} <span>${esc(r.indoklas || '')}</span>`;
+  });
+}
+function paintDraft(t) {
+  if (state.open !== t.id) return;
+  const out = $('#out-draft'); if (!out) return;
+  const m = mem.draft[qkey(prof(), t)];
+  const running = !!m && m.status === 'running';
+  $('#stop-draft').hidden = !running;
+  $$('[data-act="ai-draft"],[data-act="tpl-draft"],[data-act="ai-draft-again"]', $('#drawer')).forEach(b => { b.disabled = running || (b.hasAttribute('data-ai-btn') && ai.state === 'off'); });
+  const status = $('#draft-status');
+  if (!m) { out.hidden = true; $('#draft-tools').hidden = true; status.textContent = ''; return; }
+  out.hidden = false;
+  out.innerHTML = running && !m.text ? thinking('Az AI írja a tervezetet. Ez fél–egy perc is lehet.') : mdToHtml(m.text || '');
+  status.innerHTML = m.err ? `<span class="err">${esc(m.err)}</span>`
+    : running ? 'Írás folyamatban…'
+      : m.status === 'stopped' ? 'Leállítva.'
+        : m.source === 'tpl' ? 'Sablonból készült, AI nélkül. A kiemelt részeket ki kell tölteni.'
+          : 'AI-tervezet. Munkaanyag, beadás előtt szakember nézze át.' + (m.truncated ? ' A szöveg a hosszkorlát miatt megszakadt.' : '');
+  $('#draft-tools').hidden = !(m.text && !running);
+  $('#dl-draft').hidden = ai.dl === 'off';
+}
+
+/* ---------- market view ---------- */
+function viewMarket() {
+  const p = prof(), mk = marketAwards(p);
+  const divLabel = profileDivs(p).map(d => DIV[d] || 'CPV ' + d).join(', ');
+  const head = `${NOTICE}<div class="page-head"><div><h1 class="h1">Versenytársak és piac</h1><p class="sub">Piac: ${esc(divLabel || 'nincs megadva')} · az elmúlt 18 hónap eredményhirdetései</p></div></div>`;
+  if (!mk.length) return head + '<div class="empty">A profil tevékenységeihez (CPV) nincs eredmény a példaadatokban. Adj meg CPV-kódokat a Cégprofil fülön.</div>';
+  const rows = [...new Set(mk.map(a => a.winner))].map(n => companyStats(n, mk)).sort((a, b) => b.total - a.total);
+  const singleN = mk.filter(a => a.bids === 1).length;
+  const avgBids = mk.reduce((s, a) => s + a.bids, 0) / mk.length;
+  const ratio = mk.reduce((s, a) => s + a.value / a.est, 0) / mk.length;
+  const total = mk.reduce((s, a) => s + a.value, 0);
+  const wl = getWatch(p);
+  const addable = [...new Set(AWARDS.map(a => a.winner))].filter(n => n !== p.name && !wl.includes(n)).sort((a, b) => a.localeCompare(b, 'hu'));
+  const max = Math.max(...rows.map(r => r.total), 1);
+  const bars = rows.map(r => {
+    const me = r.name === p.name;
+    return `<div class="bar-row" role="listitem" tabindex="0" data-name="${esc(r.name)}" data-val="${esc(fmtM(r.total))}" data-detail="${esc(`${r.wins} nyertes eljárás · átl. ${nf1.format(r.avgBids)} ajánlattevő · egyajánlatos: ${fmtPct(r.single)}`)}" aria-label="${esc(`${r.name}: ${fmtM(r.total)}, ${r.wins} nyertes eljárás`)}">
+      <span class="bar-label">${esc(r.name)}${me ? '<span class="chip tiny me">Te</span>' : ''}${wl.includes(r.name) ? '<span class="chip tiny">figyelt</span>' : ''}</span>
+      <span class="bar-track"><span class="bar${me ? ' me' : ''}" style="width:calc((100% - 96px) * ${(r.total / max).toFixed(4)})"></span><span class="bar-val">${fmtM(r.total)}</span></span>
+    </div>`;
+  }).join('');
+  return `${head}
+  <div class="stack">
+    <div class="stats">
+      <div class="stat"><span class="lbl">Eredményhirdetés</span><span class="val">${mk.length}</span><p class="sub">összesen ${fmtM(total)}</p></div>
+      <div class="stat"><span class="lbl">Egyajánlatos eljárás</span><span class="val">${fmtPct(singleN / mk.length)}</span><p class="sub">${singleN} / ${mk.length} eljárásban egy ajánlat</p></div>
+      <div class="stat"><span class="lbl">Átlagos ajánlattevőszám</span><span class="val">${nf1.format(avgBids)}</span><p class="sub">eljárásonként</p></div>
+      <div class="stat"><span class="lbl">Szerződéses ár</span><span class="val">${fmtPct(ratio)}</span><p class="sub">a becsült érték arányában</p></div>
+    </div>
+    <div class="mk-grid">
+      <section class="card mk-chart" aria-labelledby="ch-h">
+        <div class="card-h"><h2 id="ch-h">Elnyert szerződéses érték cégenként</h2><span class="small muted">a saját céged kiemelve</span></div>
+        <div class="bars" role="list">${bars}</div>
+        <details class="more"><summary>Táblázatként</summary>
+          <div class="tbl-wrap"><table><thead><tr><th>Cég</th><th class="num">Nyertes</th><th class="num">Érték</th><th class="num">Egyajánlatos</th><th class="num">Ár / becsült</th></tr></thead>
+          <tbody>${rows.map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.wins}</td><td class="num">${fmtM(r.total)}</td><td class="num">${fmtPct(r.single)}</td><td class="num">${fmtPct(r.ratio)}</td></tr>`).join('')}</tbody></table></div>
+        </details>
+      </section>
+      <section class="card mk-watch" aria-labelledby="wl-h">
+        <div class="card-h"><h2 id="wl-h">Figyelt cégek (${wl.length})</h2></div>
+        <div class="add-row"><select id="watch-new" aria-label="Cég hozzáadása a figyelőlistához">${addable.length ? addable.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('') : '<option value="">Nincs több cég</option>'}</select><button class="btn" type="button" data-act="watch-add"${addable.length ? '' : ' disabled'}>Figyelés</button></div>
+        ${wl.length ? wl.map(n => compCard(n)).join('') : '<p class="muted">Még nem figyelsz egy céget sem.</p>'}
+      </section>
+    <section class="card mk-recent" aria-labelledby="rr-h">
+      <div class="card-h"><h2 id="rr-h">Friss eredmények a piacon</h2><span class="small muted">${mk.length} eredményhirdetés</span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Dátum</th><th>Tárgy</th><th>Ajánlatkérő</th><th>Nyertes</th><th class="num">Érték</th><th class="num">Ajánlat</th></tr></thead>
+      <tbody>${[...mk].sort((a, b) => a.daysAgo - b.daysAgo).map(a => `<tr><td class="nowrap">${fmtDate(a.date)}</td><td>${esc(a.title)}${a.bids === 1 ? ' <span class="single">Egyajánlatos</span>' : ''}</td><td>${esc(a.buyer)}</td><td>${esc(a.winner)}${a.winner === p.name ? ' <span class="chip tiny me">Te</span>' : ''}</td><td class="num">${fmtM(a.value)}</td><td class="num">${a.bids}</td></tr>`).join('')}</tbody></table></div>
+    </section>
+    </div>
+  </div>`;
+}
+function compCard(name) {
+  const s = companyStats(name);
+  const del = `<button class="btn ghost" type="button" data-act="watch-del" data-name="${esc(name)}">Figyelés vége</button>`;
+  if (!s.wins) return `<div class="comp"><div class="comp-h"><h3>${esc(name)}</h3>${del}</div><p class="muted small">Nincs nyertes eljárás a példaadatokban.</p></div>`;
+  return `<div class="comp">
+    <div class="comp-h"><h3>${esc(name)}</h3>${del}</div>
+    <div class="kv"><span><b>${s.wins}</b> nyertes eljárás</span><span><b>${fmtM(s.total)}</b> összesen</span><span>átl. <b>${nf1.format(s.avgBids)}</b> ajánlattevő</span><span>egyajánlatos: <b>${fmtPct(s.single)}</b></span><span>ár / becsült: <b>${fmtPct(s.ratio)}</b></span></div>
+    <p class="insight">${esc(insightFor(s))}</p>
+    <p class="small">Fő ajánlatkérők: ${s.buyers.slice(0, 2).map(b => `${esc(b.b)} (${b.n})`).join(', ')}</p>
+    <details class="more"><summary>Eredmények (${s.wins})</summary>
+      <ul class="hist">${s.awards.map(a => `<li><div>${esc(a.title)}${a.bids === 1 ? ' <span class="single">Egyajánlatos</span>' : ''}</div><div class="small muted">${fmtDate(a.date)} · ${esc(a.buyer)} · ${fmtM(a.value)} (becsült: ${fmtM(a.est)}) · ${a.bids} ajánlattevő</div></li>`).join('')}</ul>
+    </details>
+  </div>`;
+}
+
+/* ---------- report view ---------- */
+function viewReport() {
+  const p = prof();
+  return `${NOTICE}<div class="page-head"><div><h1 class="h1">Napi riport</h1><p class="sub">Így nézne ki ${aAz(p.name)} ${esc(p.name)} reggeli e-mailje. Állítsd be, mi kerüljön bele.</p></div></div>
+  <div class="rep">
+    <section class="card" aria-labelledby="rs-h">
+      <h2 id="rs-h" style="font-size:17px">Beállítások</h2>
+      <div class="field"><label for="rep-th">Minimális illeszkedés: <b id="rep-th-v">${report.threshold}</b> pont</label><input type="range" id="rep-th" min="40" max="90" step="5" value="${report.threshold}" data-rep="threshold"></div>
+      <div class="field"><label for="rep-freq">Gyakoriság</label><select id="rep-freq" data-rep="freq"><option value="daily">Naponta 7:00-kor</option><option value="weekly">Hetente, hétfőn 7:00-kor</option></select></div>
+      <fieldset class="fs"><legend class="lbl">Tartalom</legend>
+        <label class="check"><input type="checkbox" id="rep-new" data-rep="sNew"${report.sNew ? ' checked' : ''}> Új, illeszkedő kiírások</label>
+        <label class="check"><input type="checkbox" id="rep-due" data-rep="sDue"${report.sDue ? ' checked' : ''}> Közelgő határidők (7 nap)</label>
+        <label class="check"><input type="checkbox" id="rep-comp" data-rep="sComp"${report.sComp ? ' checked' : ''}> Versenytársak eredményei</label>
+      </fieldset>
+      <p class="small muted">A küldés a következő verzióban jön. Az előnézet a mai példaadatokból készül.</p>
+    </section>
+    <div id="mail">${mailHtml()}</div>
+  </div>`;
+}
+function mailHtml() {
+  const p = prof(), th = report.threshold, weekly = report.freq === 'weekly', win = weekly ? 7 : 3;
+  const evs = TENDERS.map(t => ({ t, ev: evaluate(p, t) }));
+  const fresh = evs.filter(x => x.t.pubAgo <= win && x.ev.total >= th).sort((a, b) => b.ev.total - a.ev.total);
+  const due = evs.filter(x => x.t.dueIn <= 7 && x.ev.total >= th).sort((a, b) => a.t.dueIn - b.t.dueIn);
+  const wl = getWatch(p);
+  const comp = AWARDS.filter(a => wl.includes(a.winner) && a.daysAgo <= 60).sort((a, b) => a.daysAgo - b.daysAgo);
+  const subj = weekly ? `Heti tenderösszefoglaló: ${fresh.length} új releváns kiírás` : `${fresh.length} új releváns kiírás · ${fmtShort(TODAY)}`;
+  const item = ({ t, ev }) => `<div class="mi"><span class="fit ${ev.tier}"><span class="sr">Illeszkedés: </span>${ev.total}</span><div><button class="link" type="button" data-open="${t.id}">${esc(t.title)}</button><p class="small muted">${esc(t.buyer)} · ${fmtM(t.value)} · határidő: ${fmtShort(t.due)} (${daysLabel(t.dueIn)})</p></div></div>`;
+  return `<article class="mail" aria-label="E-mail előnézet">
+    <dl class="mail-meta"><dt>Feladó</dt><dd>Tenderpilóta</dd><dt>Címzett</dt><dd>${esc(p.name)}, ajánlati csapat</dd><dt>Tárgy</dt><dd><b>${esc(subj)}</b></dd></dl>
+    <div class="mail-body">
+      <p>Jó reggelt! Ez a ${weekly ? 'heti' : 'napi'} összefoglaló a cégprofilotok alapján készült, ${th} pontos illeszkedési küszöbbel.</p>
+      ${report.sNew ? `<section><h3>Új kiírások (${fresh.length})</h3>${fresh.length ? fresh.map(item).join('') : `<p class="small muted">Az elmúlt ${win} napban nem jelent meg a küszöböt elérő kiírás.</p>`}</section>` : ''}
+      ${report.sDue ? `<section><h3>Lejáró határidők (${due.length})</h3>${due.length ? due.map(item).join('') : '<p class="small muted">A következő 7 napban nem jár le illeszkedő kiírás.</p>'}</section>` : ''}
+      ${report.sComp ? `<section><h3>Versenytársak friss eredményei (${comp.length})</h3>${comp.length ? comp.map(a => `<p><b>${esc(a.winner)}</b> nyert: ${esc(a.title)} · ${esc(a.buyer)} · ${fmtM(a.value)}${a.bids === 1 ? ' <span class="single">Egyajánlatos</span>' : ''}<br><span class="small muted">${fmtDate(a.date)}</span></p>`).join('') : '<p class="small muted">Az elmúlt 60 napban nem nyert a figyelt cégek közül senki.</p>'}</section>` : ''}
+      <p class="small muted">A beállításokat a Tenderpilóta Napi riport fülén módosíthatod.</p>
+    </div>
+  </article>`;
+}
+
+/* ---------- profile view ---------- */
+const fld = (key, label, val, type = 'text') => `<div class="field"><label for="pf-${key}">${label}</label><input type="${type}" id="pf-${key}" data-pf="${key}" value="${esc(val)}"${type === 'number' ? ' min="0" inputmode="numeric"' : ''}></div>`;
+const area = (key, label, val) => `<div class="field full"><label for="pf-${key}">${label}</label><textarea id="pf-${key}" data-pf="${key}" rows="3">${esc(val)}</textarea></div>`;
+const cpvOptions = sel => (sel && !CPV[sel] ? `<option value="${esc(sel)}">${esc(sel)}</option>` : '') + Object.keys(CPV).map(c => `<option value="${c}"${c === sel ? ' selected' : ''}>${c} – ${esc(CPV[c])}</option>`).join('');
+function viewProfile() {
+  const p = prof();
+  const isDefault = DEFAULT_PROFILES.some(d => d.id === p.id);
+  const addCpv = Object.keys(CPV).filter(c => !p.cpv.includes(c));
+  let danger;
+  if (state.confirm === 'reset') danger = '<div class="confirm">A módosításaid elvesznek. Biztosan visszaállítod? <button class="btn danger" type="button" data-act="do-reset">Visszaállítás</button><button class="btn" type="button" data-act="cancel-confirm">Mégse</button></div>';
+  else if (state.confirm === 'delete') danger = '<div class="confirm">A profil és a hozzá tartozó figyelőlista törlődik. Biztosan? <button class="btn danger" type="button" data-act="do-delete">Törlés</button><button class="btn" type="button" data-act="cancel-confirm">Mégse</button></div>';
+  else danger = `<div class="btn-row">${isDefault ? '<button class="btn" type="button" data-act="ask-reset">Visszaállítás a példaadatra</button>' : ''}${profiles.length > 1 ? '<button class="btn ghost" type="button" data-act="ask-delete">Profil törlése</button>' : ''}<button class="btn ghost" type="button" data-act="new-profile">Új cégprofil</button></div>`;
+  return `${NOTICE}<div class="page-head"><div><h1 class="h1">Cégprofil</h1><p class="sub">Ebből számoljuk az illeszkedést, és ezt kapja az AI az elemzéshez és az ajánlat-tervezethez. A módosítások ebben a böngészőben maradnak meg.</p></div></div>
+  <div class="pform">
+    <section class="card"><div class="card-h"><h2>Alapadatok</h2></div>
+      <div class="fgrid">
+        ${fld('name', 'Cégnév', p.name)}${fld('sector', 'Tevékenység', p.sector)}${fld('hq', 'Székhely', p.hq)}
+        ${fld('revenue', 'Utolsó éves nettó árbevétel (M Ft)', p.revenue, 'number')}${fld('employees', 'Létszám (fő)', p.employees, 'number')}
+        ${area('about', 'Bemutatkozás', p.about)}${area('strengths', 'Erősségek – az AI ezeket emeli ki az ajánlatban', p.strengths)}
+      </div></section>
+    <section class="card"><div class="card-h"><h2>Tevékenység (CPV-kódok)</h2><span class="small muted">${p.cpv.length} kód</span></div>
+      <div class="chips-edit">${p.cpv.map((c, i) => `<span class="chip-x"><span><span class="mono">${esc(c)}</span> ${esc(cpvName(c))}</span><button type="button" data-act="cpv-del" data-i="${i}" aria-label="${esc(c)} törlése">✕</button></span>`).join('') || '<span class="muted">Még nincs CPV-kód.</span>'}</div>
+      ${addCpv.length ? `<div class="add-row"><select id="cpv-new" aria-label="CPV-kód kiválasztása">${addCpv.map(c => `<option value="${c}">${c} – ${esc(CPV[c])}</option>`).join('')}</select><button class="btn" type="button" data-act="cpv-add">Hozzáadás</button></div>` : ''}
+    </section>
+    <section class="card"><div class="card-h"><h2>Célterület</h2><span class="small muted">ahol szívesen vállaltok munkát</span></div>
+      <div class="regions">${Object.keys(REG).map(r => `<label class="rchk"><input type="checkbox" data-region="${r}"${p.regions.includes(r) ? ' checked' : ''}> ${esc(REG[r])}</label>`).join('')}</div>
+    </section>
+    <section class="card"><div class="card-h"><h2>Tanúsítványok, nyilvántartások</h2></div>
+      <div class="chips-edit">${p.certs.map((c, i) => `<span class="chip-x"><span>${esc(c)}</span><button type="button" data-act="cert-del" data-i="${i}" aria-label="${esc(c)} törlése">✕</button></span>`).join('') || '<span class="muted">Még nincs tanúsítvány.</span>'}</div>
+      <div class="add-row"><input type="text" id="cert-new" placeholder="Pl. ISO 45001" aria-label="Új tanúsítvány neve"><button class="btn" type="button" data-act="cert-add">Hozzáadás</button></div>
+    </section>
+    <section class="card"><div class="card-h"><h2>Szakemberek</h2><button class="btn" type="button" data-act="staff-add">Új szakember</button></div>
+      <div class="rows">${p.staff.map((s, i) => `<div class="erow staff">
+        <div class="field w2"><label for="sf-r-${i}">Szerepkör</label><input type="text" id="sf-r-${i}" data-staff="${i}" data-sf="role" value="${esc(s.role)}"></div>
+        <div class="field"><label for="sf-c-${i}">Létszám</label><input type="number" min="0" id="sf-c-${i}" data-staff="${i}" data-sf="count" value="${s.count}"></div>
+        <div class="field"><label for="sf-y-${i}">Tapasztalat (év)</label><input type="number" min="0" id="sf-y-${i}" data-staff="${i}" data-sf="years" value="${s.years}"></div>
+        <button class="btn ghost" type="button" data-act="staff-del" data-i="${i}">Törlés</button>
+      </div>`).join('') || '<p class="muted">Még nincs szakember.</p>'}</div>
+    </section>
+    <section class="card"><div class="card-h"><h2>Referenciák</h2><button class="btn" type="button" data-act="ref-add">Új referencia</button></div>
+      <div class="rows">${p.references.map((r, i) => `<div class="erow ref">
+        <div class="field w2"><label for="rf-t-${i}">Megnevezés</label><input type="text" id="rf-t-${i}" data-ref="${i}" data-rf="title" value="${esc(r.title)}"></div>
+        <div class="field w2"><label for="rf-b-${i}">Ajánlatkérő</label><input type="text" id="rf-b-${i}" data-ref="${i}" data-rf="buyer" value="${esc(r.buyer)}"></div>
+        <div class="field"><label for="rf-v-${i}">Érték (M Ft)</label><input type="number" min="0" id="rf-v-${i}" data-ref="${i}" data-rf="value" value="${r.value}"></div>
+        <div class="field"><label for="rf-y-${i}">Év</label><input type="number" min="2000" max="2100" id="rf-y-${i}" data-ref="${i}" data-rf="year" value="${r.year}"></div>
+        <div class="field w2"><label for="rf-c-${i}">CPV</label><select id="rf-c-${i}" data-ref="${i}" data-rf="cpv">${cpvOptions(r.cpv)}</select></div>
+        <button class="btn ghost" type="button" data-act="ref-del" data-i="${i}">Törlés</button>
+      </div>`).join('') || '<p class="muted">Még nincs referencia.</p>'}</div>
+    </section>
+    <section class="card"><div class="card-h"><h2>Profil kezelése</h2></div>${danger}</section>
+  </div>`;
+}
+
+/* ---------- clients view ---------- */
+function viewClients() {
+  const cards = profiles.map(p => {
+    const evs = TENDERS.map(t => ({ t, ev: evaluate(p, t) })).filter(x => x.ev.total >= 60).sort((a, b) => b.ev.total - a.ev.total);
+    const newN = evs.filter(x => x.t.pubAgo <= 3).length;
+    const next = evs.slice().sort((a, b) => a.t.dueIn - b.t.dueIn)[0];
+    const sum = evs.reduce((s, x) => s + x.t.value, 0);
+    return `<article class="card client">
+      <div class="card-h"><div><h2>${esc(p.name)}</h2><p class="small muted">${esc(p.sector || 'Tevékenység nincs megadva')}${p.hq ? ' · ' + esc(p.hq) : ''}</p></div>${p.id === state.pid ? '<span class="chip new">Aktív</span>' : ''}</div>
+      <div class="mini-stats">
+        <div><b>${evs.length}</b><span>illeszkedő kiírás</span></div>
+        <div><b>${newN}</b><span>új az elmúlt 3 napban</span></div>
+        <div><b>${next ? daysLabel(next.t.dueIn) : '–'}</b><span>a legközelebbi határidőig</span></div>
+        <div><b>${sum ? fmtM(sum) : '–'}</b><span>becsült érték összesen</span></div>
+      </div>
+      ${evs.length ? `<ul class="toplist">${evs.slice(0, 3).map(({ t, ev }) => `<li><button type="button" data-open="${t.id}" data-pid="${esc(p.id)}"><span class="pill ${ev.tier}">${ev.total}</span><span>${esc(t.title)}</span><span class="small muted nowrap">${daysLabel(t.dueIn)}</span></button></li>`).join('')}</ul>` : '<p class="small muted">Nincs 60 pont feletti kiírás. Bővítsd a profilt (CPV-kódok, célterület).</p>'}
+      <div class="btn-row"><button class="btn primary" type="button" data-act="client-open" data-pid="${esc(p.id)}">Tenderek</button><button class="btn" type="button" data-act="client-edit" data-pid="${esc(p.id)}">Profil szerkesztése</button></div>
+    </article>`;
+  }).join('');
+  return `${NOTICE}<div class="page-head"><div><h1 class="h1">Ügyfeleim</h1><p class="sub">Tanácsadói nézet: az összes cégprofil egy helyen, a 60 pont feletti illeszkedéssel számolva.</p></div><button class="btn primary" type="button" data-act="new-profile">Új cégprofil</button></div><div class="clients">${cards}</div>`;
+}
+
+/* ---------- toast, tooltip, copy ---------- */
+let toastTimer;
+function toast(msg) {
+  const el = $('#toast'); el.textContent = msg; el.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+}
+function showTip(row, x, y) {
+  const tip = $('#tip');
+  const v = document.createElement('strong'); v.textContent = row.dataset.val || '';
+  const n = document.createElement('span'); n.textContent = row.dataset.name || '';
+  const d = document.createElement('span'); d.className = 'tip-sub'; d.textContent = row.dataset.detail || '';
+  tip.replaceChildren(v, n, d); tip.hidden = false;
+  placeTip(x, y);
+}
+function placeTip(x, y) {
+  const tip = $('#tip'); if (tip.hidden) return;
+  const r = tip.getBoundingClientRect();
+  tip.style.left = Math.max(8, Math.min(window.innerWidth - r.width - 8, x + 14)) + 'px';
+  tip.style.top = Math.max(8, Math.min(window.innerHeight - r.height - 8, y + 14)) + 'px';
+}
+const hideTip = () => { $('#tip').hidden = true; };
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast('Vágólapra másolva'); }
+  catch {
+    const ta = $('#copy-fallback'); if (!ta) return;
+    ta.hidden = false; ta.value = text; ta.focus(); ta.select();
+    toast('Jelöld ki és másold a szöveget (Ctrl+C / Cmd+C)');
+  }
+}
+async function downloadDraft(t, text) {
+  if (!downloads) { toast('A letöltés itt nem érhető el. Használd a Másolás gombot.'); return; }
+  try { await downloads.save({ filename: `ajanlat-tervezet-${t.ekr}.md`, data: text }); toast('Letöltve'); }
+  catch (e) { if (!e || e.code !== 'declined') toast('A letöltés nem sikerült. Használd a Másolás gombot.'); }
+}
+
+/* ---------- events ---------- */
+function newProfile() {
+  const id = 'p' + Date.now().toString(36);
+  profiles.push(normProfile({ id, name: 'Új cég Kft.', revenue: 500, employees: 10, custom: true }));
+  saveProfiles(); state.pid = id; saveUi(); paintPicker(); setTab('profile');
+  toast('Új cégprofil létrehozva. Töltsd ki az adatokat.');
+  $('#pf-name')?.select();
+}
+document.addEventListener('click', e => {
+  const tabBtn = e.target.closest('[data-tab]');
+  if (tabBtn) { setTab(tabBtn.dataset.tab); return; }
+  const op = e.target.closest('[data-open]');
+  if (op) {
+    if (op.dataset.pid && op.dataset.pid !== state.pid) switchProfile(op.dataset.pid);
+    openTender(op.dataset.open, op);
+    return;
+  }
+  if (e.target.id === 'scrim') { closeDrawer(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act, t = curTender(), p = prof();
+  const k = t ? qkey(p, t) : '';
+  switch (act) {
+    case 'close': closeDrawer(); break;
+    case 'ai-summary': if (t) runSummary(t); break;
+    case 'ai-qual': if (t) runQual(t); break;
+    case 'ai-draft': if (t) runDraft(t, false); break;
+    case 'ai-draft-again': if (t) runDraft(t, true); break;
+    case 'tpl-draft':
+      if (t) { mem.draft[k] = { status: 'done', text: templateDraft(p, t), source: 'tpl' }; drafts[k] = { text: mem.draft[k].text, source: 'tpl' }; store.set(KEY.drafts, drafts); paintDraft(t); }
+      break;
+    case 'goto-draft': $('#sec-draft')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); $('#draft-notes')?.focus({ preventScroll: true }); break;
+    case 'stop-sum': if (t) mem.sum[t.id]?.ctl?.abort(); break;
+    case 'stop-qual': mem.qual[k]?.ctl?.abort(); break;
+    case 'stop-draft': mem.draft[k]?.ctl?.abort(); break;
+    case 'copy-draft': if (mem.draft[k]?.text) copyText(mem.draft[k].text); break;
+    case 'dl-draft': if (t && mem.draft[k]?.text) downloadDraft(t, mem.draft[k].text); break;
+    case 'show-all': state.f.onlyFit = false; { const c = $('#f-fit'); if (c) c.checked = false; } paintList(); break;
+    case 'reset-filters': state.f = { q: '', onlyFit: false, div: '', region: '', regime: '', due: '', min: '', max: '', sort: state.f.sort }; renderTab(); break;
+    case 'watch-add': { const n = $('#watch-new')?.value; if (n) { setWatch(p, [...getWatch(p), n]); renderTab(); toast(`${n} figyelése bekapcsolva`); } break; }
+    case 'watch-del': setWatch(p, getWatch(p).filter(x => x !== a.dataset.name)); renderTab(); break;
+    case 'client-open': switchProfile(a.dataset.pid, false); setTab('tenders'); break;
+    case 'client-edit': switchProfile(a.dataset.pid, false); setTab('profile'); break;
+    case 'new-profile': newProfile(); break;
+    case 'cpv-add': { const c = $('#cpv-new')?.value; if (c && !p.cpv.includes(c)) { p.cpv.push(c); saveProfiles(); renderTab(); } break; }
+    case 'cpv-del': p.cpv.splice(Number(a.dataset.i), 1); saveProfiles(); renderTab(); break;
+    case 'cert-add': { const v = ($('#cert-new')?.value || '').trim(); if (v) { p.certs.push(v); saveProfiles(); renderTab(); $('#cert-new')?.focus(); } break; }
+    case 'cert-del': p.certs.splice(Number(a.dataset.i), 1); saveProfiles(); renderTab(); break;
+    case 'staff-add': p.staff.push({ role: '', count: 1, years: 0 }); saveProfiles(); renderTab(); $(`#sf-r-${p.staff.length - 1}`)?.focus(); break;
+    case 'staff-del': p.staff.splice(Number(a.dataset.i), 1); saveProfiles(); renderTab(); break;
+    case 'ref-add': p.references.push({ title: '', buyer: '', value: 0, year: CUR_YEAR, cpv: p.cpv[0] || Object.keys(CPV)[0] }); saveProfiles(); renderTab(); $(`#rf-t-${p.references.length - 1}`)?.focus(); break;
+    case 'ref-del': p.references.splice(Number(a.dataset.i), 1); saveProfiles(); renderTab(); break;
+    case 'ask-reset': state.confirm = 'reset'; renderTab(); break;
+    case 'ask-delete': state.confirm = 'delete'; renderTab(); break;
+    case 'cancel-confirm': state.confirm = null; renderTab(); break;
+    case 'do-reset': {
+      const d = DEFAULT_PROFILES.find(x => x.id === p.id);
+      if (d) { profiles[profiles.indexOf(p)] = normProfile(clone(d)); delete watch[p.id]; store.set(KEY.watch, watch); saveProfiles(); }
+      state.confirm = null; paintPicker(); renderTab(); toast('Visszaállítva a példaadatra');
+      break;
+    }
+    case 'do-delete': {
+      if (profiles.length < 2) break;
+      profiles = profiles.filter(x => x.id !== p.id); delete watch[p.id]; store.set(KEY.watch, watch); saveProfiles();
+      state.confirm = null; switchProfile(profiles[0].id); toast('A profil törölve');
+      break;
+    }
+    default: break;
+  }
+});
+let qTimer;
+document.addEventListener('input', e => {
+  const el = e.target, type = el.type;
+  const textual = type === 'text' || type === 'search' || type === 'number' || type === 'range' || el.tagName === 'TEXTAREA';
+  if (!textual) return;
+  if (el.dataset.filter) {
+    state.f[el.dataset.filter] = el.value;
+    clearTimeout(qTimer); qTimer = setTimeout(paintList, 140);
+    return;
+  }
+  if (el.id === 'draft-notes') { const t = curTender(); if (t) mem.notes[qkey(prof(), t)] = el.value; return; }
+  if (el.dataset.rep === 'threshold') {
+    report.threshold = Number(el.value); store.set(KEY.report, report);
+    $('#rep-th-v').textContent = el.value; $('#mail').innerHTML = mailHtml();
+    return;
+  }
+  const p = prof();
+  if (el.dataset.pf) {
+    const key = el.dataset.pf;
+    p[key] = key === 'revenue' || key === 'employees' ? Math.max(0, Number(el.value) || 0) : el.value;
+    saveProfiles();
+    if (key === 'name') { const o = $(`#pick-profile option[value="${CSS.escape(p.id)}"]`); if (o) o.textContent = el.value || 'Névtelen cég'; }
+    return;
+  }
+  if (el.dataset.staff != null && p.staff[Number(el.dataset.staff)]) {
+    const s = p.staff[Number(el.dataset.staff)], f = el.dataset.sf;
+    s[f] = f === 'role' ? el.value : Math.max(0, Number(el.value) || 0);
+    saveProfiles(); return;
+  }
+  if (el.dataset.ref != null && p.references[Number(el.dataset.ref)]) {
+    const r = p.references[Number(el.dataset.ref)], f = el.dataset.rf;
+    r[f] = f === 'title' || f === 'buyer' ? el.value : Number(el.value) || 0;
+    saveProfiles();
+  }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.id === 'pick-profile') { switchProfile(el.value); return; }
+  if (el.tagName !== 'SELECT' && el.type !== 'checkbox') return;
+  if (el.dataset.filter) { state.f[el.dataset.filter] = el.type === 'checkbox' ? el.checked : el.value; paintList(); return; }
+  if (el.dataset.rep) { report[el.dataset.rep] = el.type === 'checkbox' ? el.checked : el.value; store.set(KEY.report, report); $('#mail').innerHTML = mailHtml(); return; }
+  const p = prof();
+  if (el.dataset.region) {
+    const r = el.dataset.region;
+    p.regions = el.checked ? [...new Set([...p.regions, r])] : p.regions.filter(x => x !== r);
+    saveProfiles(); return;
+  }
+  if (el.dataset.ref != null && el.dataset.rf === 'cpv' && p.references[Number(el.dataset.ref)]) { p.references[Number(el.dataset.ref)].cpv = el.value; saveProfiles(); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.open) closeDrawer(); });
+document.addEventListener('pointerover', e => { const r = e.target.closest?.('.bar-row'); if (r) showTip(r, e.clientX, e.clientY); });
+document.addEventListener('pointermove', e => { if (e.target.closest?.('.bar-row')) placeTip(e.clientX, e.clientY); });
+document.addEventListener('pointerout', e => { const r = e.target.closest?.('.bar-row'); if (r && !r.contains(e.relatedTarget)) hideTip(); });
+document.addEventListener('focusin', e => { const r = e.target.closest?.('.bar-row'); if (r) { const b = r.getBoundingClientRect(); showTip(r, b.left + 120, b.top + 10); } });
+document.addEventListener('focusout', e => { if (e.target.closest?.('.bar-row')) hideTip(); });
+window.addEventListener('scroll', hideTip, { passive: true });
+
+/* ---------- boot ---------- */
+paintPicker();
+paintAiChip();
+renderTab();
+})();
+</script>
